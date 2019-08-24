@@ -41,6 +41,8 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
         {
 			setDateDoc (new Timestamp( System.currentTimeMillis() ));
 // @#Date@
+			setMigElemento (false);
+// N
 			setMigProceso (false);
 // N
 			setMigReferencia (false);
@@ -120,6 +122,30 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 	public String getEntityType () 
 	{
 		return (String)get_Value(COLUMNNAME_EntityType);
+	}
+
+	/** Set MigElemento.
+		@param MigElemento 
+		Si se desea migrar o no elementos del diccionario
+	  */
+	public void setMigElemento (boolean MigElemento)
+	{
+		set_Value (COLUMNNAME_MigElemento, Boolean.valueOf(MigElemento));
+	}
+
+	/** Get MigElemento.
+		@return Si se desea migrar o no elementos del diccionario
+	  */
+	public boolean isMigElemento () 
+	{
+		Object oo = get_Value(COLUMNNAME_MigElemento);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
 	}
 
 	/** Set MigProceso.

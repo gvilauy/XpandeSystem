@@ -144,6 +144,32 @@ public interface I_Z_Sys_MigracionLin
 	  */
 	public String getName();
 
+    /** Column name Parent_ID */
+    public static final String COLUMNNAME_Parent_ID = "Parent_ID";
+
+	/** Set Parent.
+	  * Parent of Entity
+	  */
+	public void setParent_ID(int Parent_ID);
+
+	/** Get Parent.
+	  * Parent of Entity
+	  */
+	public int getParent_ID();
+
+    /** Column name ParentName */
+    public static final String COLUMNNAME_ParentName = "ParentName";
+
+	/** Set ParentName.
+	  * Nombre del padre
+	  */
+	public void setParentName(String ParentName);
+
+	/** Get ParentName.
+	  * Nombre del padre
+	  */
+	public String getParentName();
+
     /** Column name Record_ID */
     public static final String COLUMNNAME_Record_ID = "Record_ID";
 
@@ -182,6 +208,19 @@ public interface I_Z_Sys_MigracionLin
 	  * Tipo de objeto de diccionario de datos en proceso de migración
 	  */
 	public String getTipoSysMigraObj();
+
+    /** Column name TipoSysMigraObjFrom */
+    public static final String COLUMNNAME_TipoSysMigraObjFrom = "TipoSysMigraObjFrom";
+
+	/** Set TipoSysMigraObjFrom.
+	  * Tipo de objeto (fuente) de diccionario de datos en proceso de migración
+	  */
+	public void setTipoSysMigraObjFrom(String TipoSysMigraObjFrom);
+
+	/** Get TipoSysMigraObjFrom.
+	  * Tipo de objeto (fuente) de diccionario de datos en proceso de migración
+	  */
+	public String getTipoSysMigraObjFrom();
 
     /** Column name Updated */
     public static final String COLUMNNAME_Updated = "Updated";

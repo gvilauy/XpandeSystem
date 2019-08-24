@@ -120,6 +120,19 @@ public interface I_Z_Sys_Migracion
 	  */
 	public boolean isActive();
 
+    /** Column name MigElemento */
+    public static final String COLUMNNAME_MigElemento = "MigElemento";
+
+	/** Set MigElemento.
+	  * Si se desea migrar o no elementos del diccionario
+	  */
+	public void setMigElemento(boolean MigElemento);
+
+	/** Get MigElemento.
+	  * Si se desea migrar o no elementos del diccionario
+	  */
+	public boolean isMigElemento();
+
     /** Column name MigProceso */
     public static final String COLUMNNAME_MigProceso = "MigProceso";
 

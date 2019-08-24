@@ -164,6 +164,46 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 		return (String)get_Value(COLUMNNAME_Name);
 	}
 
+	/** Set Parent.
+		@param Parent_ID 
+		Parent of Entity
+	  */
+	public void setParent_ID (int Parent_ID)
+	{
+		if (Parent_ID < 1) 
+			set_Value (COLUMNNAME_Parent_ID, null);
+		else 
+			set_Value (COLUMNNAME_Parent_ID, Integer.valueOf(Parent_ID));
+	}
+
+	/** Get Parent.
+		@return Parent of Entity
+	  */
+	public int getParent_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_Parent_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
+	/** Set ParentName.
+		@param ParentName 
+		Nombre del padre
+	  */
+	public void setParentName (String ParentName)
+	{
+		set_Value (COLUMNNAME_ParentName, ParentName);
+	}
+
+	/** Get ParentName.
+		@return Nombre del padre
+	  */
+	public String getParentName () 
+	{
+		return (String)get_Value(COLUMNNAME_ParentName);
+	}
+
 	/** Set Record ID.
 		@param Record_ID 
 		Direct internal record ID
@@ -216,6 +256,8 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	public static final String TIPOSYSMIGRAOBJ_REFERENCIA = "REFERENCIA";
 	/** VALIDACION = VALIDACION */
 	public static final String TIPOSYSMIGRAOBJ_VALIDACION = "VALIDACION";
+	/** ELEMENTO = ELEMENTO */
+	public static final String TIPOSYSMIGRAOBJ_ELEMENTO = "ELEMENTO";
 	/** Set TipoSysMigraObj.
 		@param TipoSysMigraObj 
 		Tipo de objeto de diccionario de datos en proceso de migración
@@ -232,6 +274,38 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	public String getTipoSysMigraObj () 
 	{
 		return (String)get_Value(COLUMNNAME_TipoSysMigraObj);
+	}
+
+	/** TipoSysMigraObjFrom AD_Reference_ID=1000057 */
+	public static final int TIPOSYSMIGRAOBJFROM_AD_Reference_ID=1000057;
+	/** VENTANA = VENTANA */
+	public static final String TIPOSYSMIGRAOBJFROM_VENTANA = "VENTANA";
+	/** TABLA = TABLA */
+	public static final String TIPOSYSMIGRAOBJFROM_TABLA = "TABLA";
+	/** PROCESO = PROCESO */
+	public static final String TIPOSYSMIGRAOBJFROM_PROCESO = "PROCESO";
+	/** REFERENCIA = REFERENCIA */
+	public static final String TIPOSYSMIGRAOBJFROM_REFERENCIA = "REFERENCIA";
+	/** VALIDACION = VALIDACION */
+	public static final String TIPOSYSMIGRAOBJFROM_VALIDACION = "VALIDACION";
+	/** ELEMENTO = ELEMENTO */
+	public static final String TIPOSYSMIGRAOBJFROM_ELEMENTO = "ELEMENTO";
+	/** Set TipoSysMigraObjFrom.
+		@param TipoSysMigraObjFrom 
+		Tipo de objeto (fuente) de diccionario de datos en proceso de migración
+	  */
+	public void setTipoSysMigraObjFrom (String TipoSysMigraObjFrom)
+	{
+
+		set_Value (COLUMNNAME_TipoSysMigraObjFrom, TipoSysMigraObjFrom);
+	}
+
+	/** Get TipoSysMigraObjFrom.
+		@return Tipo de objeto (fuente) de diccionario de datos en proceso de migración
+	  */
+	public String getTipoSysMigraObjFrom () 
+	{
+		return (String)get_Value(COLUMNNAME_TipoSysMigraObjFrom);
 	}
 
 	/** Set Immutable Universally Unique Identifier.
