@@ -31,7 +31,7 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20190823L;
+	private static final long serialVersionUID = 20190824L;
 
     /** Standard Constructor */
     public X_Z_Sys_MigracionLin (Properties ctx, int Z_Sys_MigracionLin_ID, String trxName)
@@ -258,6 +258,8 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	public static final String TIPOSYSMIGRAOBJ_VALIDACION = "VALIDACION";
 	/** ELEMENTO = ELEMENTO */
 	public static final String TIPOSYSMIGRAOBJ_ELEMENTO = "ELEMENTO";
+	/** REPORTVIEW = REPORTVIEW */
+	public static final String TIPOSYSMIGRAOBJ_REPORTVIEW = "REPORTVIEW";
 	/** Set TipoSysMigraObj.
 		@param TipoSysMigraObj 
 		Tipo de objeto de diccionario de datos en proceso de migración
@@ -290,6 +292,8 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	public static final String TIPOSYSMIGRAOBJFROM_VALIDACION = "VALIDACION";
 	/** ELEMENTO = ELEMENTO */
 	public static final String TIPOSYSMIGRAOBJFROM_ELEMENTO = "ELEMENTO";
+	/** REPORTVIEW = REPORTVIEW */
+	public static final String TIPOSYSMIGRAOBJFROM_REPORTVIEW = "REPORTVIEW";
 	/** Set TipoSysMigraObjFrom.
 		@param TipoSysMigraObjFrom 
 		Tipo de objeto (fuente) de diccionario de datos en proceso de migración
