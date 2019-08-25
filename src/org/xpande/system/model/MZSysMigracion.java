@@ -3,10 +3,8 @@ package org.xpande.system.model;
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.*;
 import org.compiere.util.DB;
-import org.xpande.system.migration.ADElement;
-import org.xpande.system.migration.ADReference;
-import org.xpande.system.migration.ADVal_Rule;
-import org.xpande.system.migration.CabezalMigracion;
+import org.compiere.util.ValueNamePair;
+import org.xpande.system.migration.*;
 
 import java.beans.XMLEncoder;
 import java.io.FileOutputStream;
@@ -804,6 +802,26 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             while(rs.next()){
                 ADReference reference = new ADReference(getCtx(), rs.getInt("ad_reference_id"), null);
                 this.cabezalMigracion.getReferenceList().add(reference);
+
+                // Referencia de Lista
+                for (ValueNamePair vp : MRefList.getList(getCtx(), reference.getAD_Reference_ID(), false)){
+                    MRefList mRefList = MRefList.get(getCtx(), reference.getAD_Reference_ID(), vp.getValue(), null);
+                    if (mRefList != null){
+                        ADRef_List adRefList = new ADRef_List(getCtx(), mRefList.get_ID(), null);
+                        if (adRefList != null){
+                            this.cabezalMigracion.getRefListList().add(adRefList);
+                        }
+                    }
+                }
+
+                // Referencia de Tabla
+                MRefTable mRefTable = MRefTable.getById(getCtx(), reference.getAD_Reference_ID());
+                if (mRefTable != null){
+                    ADRef_Table refTable = new ADRef_Table(getCtx(), mRefTable.get_ID(), null);
+                    if (refTable != null){
+                        this.cabezalMigracion.getRefTableList().add(refTable);
+                    }
+                }
             }
         }
         catch (Exception e){
