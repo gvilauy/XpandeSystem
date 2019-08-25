@@ -3,8 +3,13 @@ package org.xpande.system.model;
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.*;
 import org.compiere.util.DB;
+import org.xpande.system.migration.ADElement;
+import org.xpande.system.migration.ADReference;
 import org.xpande.system.migration.ADVal_Rule;
+import org.xpande.system.migration.CabezalMigracion;
 
+import java.beans.XMLEncoder;
+import java.io.FileOutputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
@@ -18,6 +23,7 @@ import java.util.Properties;
 public class MZSysMigracion extends X_Z_Sys_Migracion {
 
     private String whereClause = "";
+    private CabezalMigracion cabezalMigracion = null;
 
     public MZSysMigracion(Properties ctx, int Z_Sys_Migracion_ID, String trxName) {
         super(ctx, Z_Sys_Migracion_ID, trxName);
@@ -719,4 +725,94 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         return value;
     }
 
+    public String export(){
+
+        String message = null;
+
+        try{
+
+            this.cabezalMigracion = new CabezalMigracion();
+
+            // Exporto Referencias
+            this.exportReferencias();
+
+            // Exporto Elementos
+            this.exportElementos();
+
+            FileOutputStream os = new FileOutputStream("/tmp/" + "prueba.xml");
+            XMLEncoder encoder = new XMLEncoder(os);
+            encoder.writeObject(this.cabezalMigracion);
+            encoder.close();
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
+    }
+
+    private void exportElementos() {
+
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select record_id as ad_element_id " +
+                    " from z_sys_migracionlin " +
+                    " where z_sys_migracion_id = " + this.get_ID() +
+                    " and ad_table_id =" + I_AD_Element.Table_ID +
+                    " and isselected ='Y'" +
+                    " order by created ";
+
+        	pstmt = DB.prepareStatement(sql, get_TrxName());
+        	rs = pstmt.executeQuery();
+
+        	while(rs.next()){
+                ADElement element = new ADElement(getCtx(), rs.getInt("ad_element_id"), null);
+                this.cabezalMigracion.getElementList().add(element);
+        	}
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+        	rs = null; pstmt = null;
+        }
+
+    }
+
+    private void exportReferencias() {
+
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select record_id as ad_reference_id " +
+                    " from z_sys_migracionlin " +
+                    " where z_sys_migracion_id = " + this.get_ID() +
+                    " and ad_table_id =" + I_AD_Reference.Table_ID +
+                    " and isselected ='Y'" +
+                    " order by created ";
+
+            pstmt = DB.prepareStatement(sql, get_TrxName());
+            rs = pstmt.executeQuery();
+
+            while(rs.next()){
+                ADReference reference = new ADReference(getCtx(), rs.getInt("ad_reference_id"), null);
+                this.cabezalMigracion.getReferenceList().add(reference);
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+            rs = null; pstmt = null;
+        }
+
+    }
 }

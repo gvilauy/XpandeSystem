@@ -22,6 +22,7 @@ import java.sql.Timestamp;
 import java.util.Properties;
 
 import org.compiere.model.*;
+import org.compiere.util.Env;
 import org.compiere.util.KeyNamePair;
 
 /** Generated Model for AD_Ref_List
@@ -56,7 +57,14 @@ public class ADRef_List extends PO implements I_AD_Ref_List, I_Persistent
       super (ctx, rs, trxName);
     }
 
-    /** AccessLevel
+	// Xpande Gabriel Vila. 24/08/2019.
+	// Constructor para migracion de diccionario.
+	public ADRef_List (){
+		super (Env.getCtx());
+	}
+	// Fin Xpande.
+
+	/** AccessLevel
       * @return 4 - System 
       */
     protected int get_AccessLevel()

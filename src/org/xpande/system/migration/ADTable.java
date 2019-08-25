@@ -21,6 +21,7 @@ import java.sql.ResultSet;
 import java.util.Properties;
 
 import org.compiere.model.*;
+import org.compiere.util.Env;
 import org.compiere.util.KeyNamePair;
 
 /** Generated Model for AD_Table
@@ -65,7 +66,14 @@ public class ADTable extends PO implements I_AD_Table, I_Persistent
       super (ctx, rs, trxName);
     }
 
-    /** AccessLevel
+	// Xpande Gabriel Vila. 24/08/2019.
+	// Constructor para migracion de diccionario.
+	public ADTable (){
+		super (Env.getCtx());
+	}
+	// Fin Xpande.
+
+	/** AccessLevel
       * @return 4 - System 
       */
     protected int get_AccessLevel()

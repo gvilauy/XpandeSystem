@@ -56,11 +56,15 @@ public class ADElement extends PO implements I_AD_Element, I_Persistent
       super (ctx, rs, trxName);
     }
 
-	public ADElement(){
+	// Xpande Gabriel Vila. 24/08/2019.
+	// Constructor para migracion de diccionario.
+	public ADElement (){
 		super (Env.getCtx());
 	}
+	// Fin Xpande.
 
-    /** AccessLevel
+
+	/** AccessLevel
       * @return 4 - System 
       */
     protected int get_AccessLevel()

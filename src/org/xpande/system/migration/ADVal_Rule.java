@@ -24,6 +24,7 @@ import org.compiere.model.I_AD_Val_Rule;
 import org.compiere.model.I_Persistent;
 import org.compiere.model.PO;
 import org.compiere.model.POInfo;
+import org.compiere.util.Env;
 import org.compiere.util.KeyNamePair;
 
 /** Generated Model for AD_Val_Rule
@@ -57,7 +58,14 @@ public class ADVal_Rule extends PO implements I_AD_Val_Rule, I_Persistent
       super (ctx, rs, trxName);
     }
 
-    /** AccessLevel
+	// Xpande Gabriel Vila. 24/08/2019.
+	// Constructor para migracion de diccionario.
+	public ADVal_Rule (){
+		super (Env.getCtx());
+	}
+	// Fin Xpande.
+
+	/** AccessLevel
       * @return 4 - System 
       */
     protected int get_AccessLevel()

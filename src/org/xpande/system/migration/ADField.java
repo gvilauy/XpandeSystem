@@ -69,7 +69,15 @@ public class ADField extends PO implements I_AD_Field, I_Persistent
       super (ctx, rs, trxName);
     }
 
-    /** AccessLevel
+	// Xpande Gabriel Vila. 24/08/2019.
+	// Constructor para migracion de diccionario.
+	public ADField (){
+		super (Env.getCtx());
+	}
+	// Fin Xpande.
+
+
+	/** AccessLevel
       * @return 4 - System 
       */
     protected int get_AccessLevel()

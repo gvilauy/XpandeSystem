@@ -21,6 +21,7 @@ import java.sql.ResultSet;
 import java.util.Properties;
 
 import org.compiere.model.*;
+import org.compiere.util.Env;
 import org.compiere.util.KeyNamePair;
 
 /** Generated Model for AD_Process
@@ -61,6 +62,13 @@ public class ADProcess extends PO implements I_AD_Process, I_Persistent
     {
       super (ctx, rs, trxName);
     }
+
+	// Xpande Gabriel Vila. 24/08/2019.
+	// Constructor para migracion de diccionario.
+	public ADProcess (){
+		super (Env.getCtx());
+	}
+	// Fin Xpande.
 
     /** AccessLevel
       * @return 4 - System 

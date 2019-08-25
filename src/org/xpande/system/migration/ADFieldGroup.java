@@ -24,6 +24,7 @@ import org.compiere.model.I_AD_FieldGroup;
 import org.compiere.model.I_Persistent;
 import org.compiere.model.PO;
 import org.compiere.model.POInfo;
+import org.compiere.util.Env;
 import org.compiere.util.KeyNamePair;
 
 /** Generated Model for AD_FieldGroup
@@ -56,7 +57,14 @@ public class ADFieldGroup extends PO implements I_AD_FieldGroup, I_Persistent
       super (ctx, rs, trxName);
     }
 
-    /** AccessLevel
+	// Xpande Gabriel Vila. 24/08/2019.
+	// Constructor para migracion de diccionario.
+	public ADFieldGroup (){
+		super (Env.getCtx());
+	}
+	// Fin Xpande.
+
+	/** AccessLevel
       * @return 4 - System 
       */
     protected int get_AccessLevel()
