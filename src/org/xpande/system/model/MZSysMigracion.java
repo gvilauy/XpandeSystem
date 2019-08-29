@@ -723,6 +723,11 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         return value;
     }
 
+    /***
+     * Exporta objetos del diccionario seleccionados a archivo de interface.
+     * Xpande. Created by Gabriel Vila on 8/29/19.
+     * @return
+     */
     public String export(){
 
         String message = null;
@@ -731,12 +736,16 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             this.cabezalMigracion = new CabezalMigracion();
 
+            // Exporto Validaciones
+            this.exportValidaciones();
+
             // Exporto Referencias
             this.exportReferencias();
 
             // Exporto Elementos
             this.exportElementos();
 
+            // Genero archivo de interface
             FileOutputStream os = new FileOutputStream("/tmp/" + "prueba.xml");
             XMLEncoder encoder = new XMLEncoder(os);
             encoder.writeObject(this.cabezalMigracion);
@@ -750,6 +759,47 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         return message;
     }
 
+
+    /***
+     * Agrega validaciones seleccionadas para exportar, en este modelo.
+     * Xpande. Created by Gabriel Vila on 8/29/19.
+     */
+    private void exportValidaciones() {
+
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select record_id as ad_val_rule_id " +
+                    " from z_sys_migracionlin " +
+                    " where z_sys_migracion_id = " + this.get_ID() +
+                    " and ad_table_id =" + I_AD_Val_Rule.Table_ID +
+                    " and isselected ='Y'" +
+                    " order by created ";
+
+            pstmt = DB.prepareStatement(sql, get_TrxName());
+            rs = pstmt.executeQuery();
+
+            while(rs.next()){
+                ADVal_Rule valRule = new ADVal_Rule(getCtx(), rs.getInt("ad_val_rule_id"), null);
+                this.cabezalMigracion.getValRuleList().add(valRule);
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+            rs = null; pstmt = null;
+        }
+    }
+
+
+    /***
+     * Agrega elementos seleccionados para exportar, en este modelo.
+     * Xpande. Created by Gabriel Vila on 8/29/19.
+     */
     private void exportElementos() {
 
         String sql = "";
@@ -779,9 +829,12 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             DB.close(rs, pstmt);
         	rs = null; pstmt = null;
         }
-
     }
 
+    /***
+     * Agrega referencias seleccionadas para exportar, en este modelo.
+     * Xpande. Created by Gabriel Vila on 8/29/19.
+     */
     private void exportReferencias() {
 
         String sql = "";
