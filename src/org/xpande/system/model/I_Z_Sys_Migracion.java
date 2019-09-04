@@ -107,6 +107,19 @@ public interface I_Z_Sys_Migracion
 	  */
 	public String getEntityType();
 
+    /** Column name FilePathOrName */
+    public static final String COLUMNNAME_FilePathOrName = "FilePathOrName";
+
+	/** Set File Path or Name.
+	  * Path of directory or name of the local file or URL
+	  */
+	public void setFilePathOrName(String FilePathOrName);
+
+	/** Get File Path or Name.
+	  * Path of directory or name of the local file or URL
+	  */
+	public String getFilePathOrName();
+
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";
 

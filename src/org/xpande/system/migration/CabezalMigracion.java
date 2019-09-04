@@ -19,7 +19,10 @@ public class CabezalMigracion {
     private List<ADWindow> windowList = new ArrayList<ADWindow>();
     private List<ADRef_List> refListList = new ArrayList<ADRef_List>();
     private List<ADRef_Table> refTableList = new ArrayList<ADRef_Table>();
-
+    private List<ADColumn> columnList = new ArrayList<ADColumn>();
+    private List<ADProcessPara> processParaList = new ArrayList<ADProcessPara>();
+    private List<ADTab> tabList = new ArrayList<ADTab>();
+    private List<ADField> fieldList = new ArrayList<ADField>();
 
     public List<ADRef_Table> getRefTableList() {
         return refTableList;
@@ -91,5 +94,37 @@ public class CabezalMigracion {
 
     public void setWindowList(List<ADWindow> windowList) {
         this.windowList = windowList;
+    }
+
+    public List<ADColumn> getColumnList() {
+        return columnList;
+    }
+
+    public void setColumnList(List<ADColumn> columnList) {
+        this.columnList = columnList;
+    }
+
+    public List<ADProcessPara> getProcessParaList() {
+        return processParaList;
+    }
+
+    public void setProcessParaList(List<ADProcessPara> processParaList) {
+        this.processParaList = processParaList;
+    }
+
+    public List<ADTab> getTabList() {
+        return tabList;
+    }
+
+    public void setTabList(List<ADTab> tabList) {
+        this.tabList = tabList;
+    }
+
+    public List<ADField> getFieldList() {
+        return fieldList;
+    }
+
+    public void setFieldList(List<ADField> fieldList) {
+        this.fieldList = fieldList;
     }
 }

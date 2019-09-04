@@ -416,13 +416,12 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
     private void setTablaLin(X_AD_Table table, String parentType, String parentName, int parentID){
 
         try{
-            if (table.getEntityType().equalsIgnoreCase(X_AD_Table.ENTITYTYPE_Dictionary)){
-                return;
-            }
+
             if (this.existeTablaRecord(I_AD_Table.Table_ID, table.get_ID())){
                 return;
             }
 
+            // Considero tabla aunque sea del diccionario para luego poder procesar las columnas agregadas que no son diccionario.
             MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
             sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
             sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA);
@@ -440,30 +439,33 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             sysMigracionLin.saveEx();
 
-            // Recorro columnas de esta tabla para procesar objetos del diccionario asociados a las mismas
+            // Recorro columnas de esta tabla para procesar objetos del diccionario asociados a las mismas.
+            // Si la tabla es diccionario, considero solo las que no son del diccionario.
             List<MColumn> columnList = ((MTable) table).getColumnsAsList();
             for (MColumn column: columnList){
 
-                // Procso elemento de la columna
-                X_AD_Element element = (X_AD_Element) column.getAD_Element();
-                this.setElementoLin(element, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA, table.getName(), table.get_ID());
+                if (!column.getEntityType().equalsIgnoreCase(X_AD_Column.ENTITYTYPE_Dictionary)){
+                    // Procso elemento de la columna
+                    X_AD_Element element = (X_AD_Element) column.getAD_Element();
+                    this.setElementoLin(element, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA, table.getName(), table.get_ID());
 
-                // Si tengo referencia asociada a esta columna la proceso
-                if (column.getAD_Reference_Value_ID() > 0){
-                    X_AD_Reference reference = new X_AD_Reference(getCtx(), column.getAD_Reference_Value_ID(), null);
-                    this.setReferenciaLin(reference, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA, table.getName(), table.get_ID());
-                }
+                    // Si tengo referencia asociada a esta columna la proceso
+                    if (column.getAD_Reference_Value_ID() > 0){
+                        X_AD_Reference reference = new X_AD_Reference(getCtx(), column.getAD_Reference_Value_ID(), null);
+                        this.setReferenciaLin(reference, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA, table.getName(), table.get_ID());
+                    }
 
-                // Si tengo validacion asociada a esta columna la proceso
-                if (column.getAD_Val_Rule_ID() > 0){
-                    X_AD_Val_Rule valRule = new X_AD_Val_Rule(getCtx(), column.getAD_Val_Rule_ID(), null);
-                    this.setValidacionLin(valRule, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA, table.getName(), table.get_ID());
-                }
+                    // Si tengo validacion asociada a esta columna la proceso
+                    if (column.getAD_Val_Rule_ID() > 0){
+                        X_AD_Val_Rule valRule = new X_AD_Val_Rule(getCtx(), column.getAD_Val_Rule_ID(), null);
+                        this.setValidacionLin(valRule, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA, table.getName(), table.get_ID());
+                    }
 
-                // Si tengo proceso asociado a esta columna lo considero
-                if (column.getAD_Process_ID() > 0){
-                    X_AD_Process process = new X_AD_Process(getCtx(), column.getAD_Process_ID(), null);
-                    this.setProcesoLin(process, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA, table.getName(), table.get_ID());
+                    // Si tengo proceso asociado a esta columna lo considero
+                    if (column.getAD_Process_ID() > 0){
+                        X_AD_Process process = new X_AD_Process(getCtx(), column.getAD_Process_ID(), null);
+                        this.setProcesoLin(process, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA, table.getName(), table.get_ID());
+                    }
                 }
             }
         }
@@ -635,6 +637,11 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             for (int i = 0; i < tabList.length; i++){
                 MTab tab = tabList[i];
 
+                // Si la pestaña no esta activa, no la considero
+                if (!tab.isActive()){
+                    continue;
+                }
+
                 // Proceso Tabla asociada a esta pestaña
                 X_AD_Table table = (X_AD_Table) tab.getAD_Table();
                 this.setTablaLin(table, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_VENTANA, window.getName(), window.get_ID());
@@ -734,6 +741,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
         try{
 
+            if ((this.getFilePathOrName() == null) || (this.getFilePathOrName().trim().equalsIgnoreCase(""))){
+                return "Debe indicar Archivo Destino";
+            }
+
             this.cabezalMigracion = new CabezalMigracion();
 
             // Exporto Validaciones
@@ -745,8 +756,18 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             // Exporto Elementos
             this.exportElementos();
 
+            // Exporto Tablas
+            this.exportTablas();
+
+            // Exporto Procesos
+            this.exportProcesos();
+
+            // Exporto Ventanas
+            this.exportVentanas();
+
             // Genero archivo de interface
-            FileOutputStream os = new FileOutputStream("/tmp/" + "prueba.xml");
+            //FileOutputStream os = new FileOutputStream("/tmp/" + "prueba.xml");
+            FileOutputStream os = new FileOutputStream(this.getFilePathOrName());
             XMLEncoder encoder = new XMLEncoder(os);
             encoder.writeObject(this.cabezalMigracion);
             encoder.close();
@@ -886,4 +907,157 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         }
 
     }
+
+    /***
+     * Agrega Tablas seleccionadas para exportar, en este modelo.
+     * Xpande. Created by Gabriel Vila on 9/2/19.
+     */
+    private void exportTablas() {
+
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select record_id as ad_table_id " +
+                    " from z_sys_migracionlin " +
+                    " where z_sys_migracion_id = " + this.get_ID() +
+                    " and ad_table_id =" + I_AD_Table.Table_ID +
+                    " and isselected ='Y'" +
+                    " order by created ";
+
+            pstmt = DB.prepareStatement(sql, get_TrxName());
+            rs = pstmt.executeQuery();
+
+            while(rs.next()){
+
+                MTable table = new MTable(getCtx(), rs.getInt("ad_table_id"), null);
+
+                // Exporto esta tabla si no es tipo de entidad Diccionario
+                if (!table.getEntityType().equalsIgnoreCase(X_AD_Table.ENTITYTYPE_Dictionary)){
+                    ADTable adTable = new ADTable(getCtx(), rs.getInt("ad_table_id"), null);
+                    this.cabezalMigracion.getTableList().add(adTable);
+                }
+
+                // Recorro columnas de esta tabla para exportar (en caso que la tabla sea diccionario, solo importo las columnas no diccionario
+                List<MColumn> columnList = table.getColumnsAsList();
+                for (MColumn column: columnList){
+                    if (!table.getEntityType().equalsIgnoreCase(X_AD_Table.ENTITYTYPE_Dictionary)){
+                        ADColumn adColumn = new ADColumn(getCtx(), column.get_ID(), null);
+                        this.cabezalMigracion.getColumnList().add(adColumn);
+                    }
+                    else {
+                        if (!column.getEntityType().equalsIgnoreCase(X_AD_Column.ENTITYTYPE_Dictionary)){
+                            ADColumn adColumn = new ADColumn(getCtx(), column.get_ID(), null);
+                            this.cabezalMigracion.getColumnList().add(adColumn);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+            rs = null; pstmt = null;
+        }
+
+    }
+
+    /***
+     * Agrega Procesos seleccionadas para exportar, en este modelo.
+     * Xpande. Created by Gabriel Vila on 9/2/19.
+     */
+    private void exportProcesos() {
+
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select record_id as ad_process_id " +
+                    " from z_sys_migracionlin " +
+                    " where z_sys_migracion_id = " + this.get_ID() +
+                    " and ad_table_id =" + I_AD_Process.Table_ID +
+                    " and isselected ='Y'" +
+                    " order by created ";
+
+            pstmt = DB.prepareStatement(sql, get_TrxName());
+            rs = pstmt.executeQuery();
+
+            while(rs.next()){
+                ADProcess adProcess = new ADProcess(getCtx(), rs.getInt("ad_process_id"), null);
+                this.cabezalMigracion.getProcessList().add(adProcess);
+
+                // Recorro parametros de este proceso para exportar
+                MProcess process = new MProcess(getCtx(), rs.getInt("ad_process_id"), null);
+                MProcessPara[] processParaList = process.getParameters();
+                for (int i = 0; i < processParaList.length; i++){
+                    ADProcessPara adProcessPara = new ADProcessPara(getCtx(), processParaList[i].get_ID(), null);
+                    this.cabezalMigracion.getProcessParaList().add(adProcessPara);
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+            rs = null; pstmt = null;
+        }
+
+    }
+
+    /***
+     * Agrega Ventanas seleccionadas para exportar, en este modelo.
+     * Xpande. Created by Gabriel Vila on 9/2/19.
+     */
+    private void exportVentanas(){
+
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select record_id as ad_window_id " +
+                    " from z_sys_migracionlin " +
+                    " where z_sys_migracion_id = " + this.get_ID() +
+                    " and ad_table_id =" + I_AD_Window.Table_ID +
+                    " and isselected ='Y'" +
+                    " order by created ";
+
+            pstmt = DB.prepareStatement(sql, get_TrxName());
+            rs = pstmt.executeQuery();
+
+            while(rs.next()){
+                ADWindow adWindow = new ADWindow(getCtx(), rs.getInt("ad_window_id"), null);
+                this.cabezalMigracion.getWindowList().add(adWindow);
+
+                // Recorro Tabs de este proceso para exportar
+                MWindow window = new MWindow(getCtx(), rs.getInt("ad_window_id"), null);
+                MTab[] tabList = window.getTabs(false, null);
+                for (int i = 0; i < tabList.length; i++){
+                    ADTab adTab = new ADTab(getCtx(), tabList[i].get_ID(), null);
+                    this.cabezalMigracion.getTabList().add(adTab);
+
+                    // Recorro Fields de esta tab para exportar
+                    MField[] fieldList = tabList[i].getFields(false, null);
+                    for (int j = 0; j < fieldList.length; j++){
+                        ADField adField = new ADField(getCtx(), fieldList[j].get_ID(), null);
+                        this.cabezalMigracion.getFieldList().add(adField);
+                    }
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+            rs = null; pstmt = null;
+        }
+
+    }
+
 }

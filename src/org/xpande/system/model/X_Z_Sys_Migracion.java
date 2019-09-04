@@ -31,7 +31,7 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20190823L;
+	private static final long serialVersionUID = 20190902L;
 
     /** Standard Constructor */
     public X_Z_Sys_Migracion (Properties ctx, int Z_Sys_Migracion_ID, String trxName)
@@ -122,6 +122,23 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 	public String getEntityType () 
 	{
 		return (String)get_Value(COLUMNNAME_EntityType);
+	}
+
+	/** Set File Path or Name.
+		@param FilePathOrName 
+		Path of directory or name of the local file or URL
+	  */
+	public void setFilePathOrName (String FilePathOrName)
+	{
+		set_Value (COLUMNNAME_FilePathOrName, FilePathOrName);
+	}
+
+	/** Get File Path or Name.
+		@return Path of directory or name of the local file or URL
+	  */
+	public String getFilePathOrName () 
+	{
+		return (String)get_Value(COLUMNNAME_FilePathOrName);
 	}
 
 	/** Set MigElemento.
