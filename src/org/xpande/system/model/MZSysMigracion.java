@@ -6,7 +6,9 @@ import org.compiere.util.DB;
 import org.compiere.util.ValueNamePair;
 import org.xpande.system.migration.*;
 
+import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -36,7 +38,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
      * Xpande. Created by Gabriel Vila on 8/23/19.
      * @return
      */
-    public String getData() {
+    public String getDataDB() {
 
         String message = null;
         try{
@@ -50,42 +52,42 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             // Obtener elementos
             if (this.isMigElemento()){
-                message = this.getElementos();
+                message = this.getElementosDB();
                 if (message != null){
                     return message;
                 }
             }
             // Obtener validaciones
             if (this.isMigValidacion()){
-                message = this.getValidaciones();
+                message = this.getValidacionesDB();
                 if (message != null){
                     return message;
                 }
             }
             // Obtener referencias
             if (this.isMigReferencia()){
-                message = this.getReferencias();
+                message = this.getReferenciasDB();
                 if (message != null){
                     return message;
                 }
             }
             // Obtener tablas
             if (this.isMigTabla()){
-                message = this.getTablas();
+                message = this.getTablasDB();
                 if (message != null){
                     return message;
                 }
             }
             // Obtener procesos
             if (this.isMigProceso()){
-                message = this.getProcesos();
+                message = this.getProcesosDB();
                 if (message != null){
                     return message;
                 }
             }
             // Obtener ventanas
             if (this.isMigVentana()){
-                message = this.getVentanas();
+                message = this.getVentanasDB();
                 if (message != null){
                     return message;
                 }
@@ -130,7 +132,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
      * Xpande. Created by Gabriel Vila on 8/23/19.
      * @return
      */
-    private String getElementos() {
+    private String getElementosDB() {
 
         String message = null;
 
@@ -215,7 +217,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
      * Xpande. Created by Gabriel Vila on 8/23/19.
      * @return
      */
-    private String getValidaciones() {
+    private String getValidacionesDB() {
 
         String message = null;
 
@@ -293,7 +295,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
      * Xpande. Created by Gabriel Vila on 8/23/19.
      * @return
      */
-    private String getReferencias() {
+    private String getReferenciasDB() {
 
         String message = null;
 
@@ -372,7 +374,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
      * Xpande. Created by Gabriel Vila on 8/23/19.
      * @return
      */
-    private String getTablas() {
+    private String getTablasDB() {
 
         String message = null;
 
@@ -480,7 +482,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
      * Xpande. Created by Gabriel Vila on 8/23/19.
      * @return
      */
-    private String getProcesos() {
+    private String getProcesosDB() {
 
         String message = null;
 
@@ -564,7 +566,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
      * Xpande. Created by Gabriel Vila on 8/23/19.
      * @return
      */
-    private String getVentanas() {
+    private String getVentanasDB() {
 
         String message = null;
 
@@ -792,7 +794,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         ResultSet rs = null;
 
         try{
-            sql = " select record_id as ad_val_rule_id " +
+            sql = " select record_id as ad_val_rule_id, TipoSysMigraObjFrom, parentName, parent_ID " +
                     " from z_sys_migracionlin " +
                     " where z_sys_migracion_id = " + this.get_ID() +
                     " and ad_table_id =" + I_AD_Val_Rule.Table_ID +
@@ -804,6 +806,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             while(rs.next()){
                 ADVal_Rule valRule = new ADVal_Rule(getCtx(), rs.getInt("ad_val_rule_id"), null);
+                valRule.setParentType(rs.getString("TipoSysMigraObjFrom"));
+                valRule.setParentName(rs.getString("parentName"));
+                valRule.setParentID(rs.getInt("parent_ID"));
+
                 this.cabezalMigracion.getValRuleList().add(valRule);
             }
         }
@@ -828,7 +834,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         ResultSet rs = null;
 
         try{
-            sql = " select record_id as ad_element_id " +
+            sql = " select record_id as ad_element_id, TipoSysMigraObjFrom, parentName, parent_ID  " +
                     " from z_sys_migracionlin " +
                     " where z_sys_migracion_id = " + this.get_ID() +
                     " and ad_table_id =" + I_AD_Element.Table_ID +
@@ -840,6 +846,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
         	while(rs.next()){
                 ADElement element = new ADElement(getCtx(), rs.getInt("ad_element_id"), null);
+                element.setParentType(rs.getString("TipoSysMigraObjFrom"));
+                element.setParentName(rs.getString("parentName"));
+                element.setParentID(rs.getInt("parent_ID"));
+
                 this.cabezalMigracion.getElementList().add(element);
         	}
         }
@@ -863,7 +873,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         ResultSet rs = null;
 
         try{
-            sql = " select record_id as ad_reference_id " +
+            sql = " select record_id as ad_reference_id, TipoSysMigraObjFrom, parentName, parent_ID " +
                     " from z_sys_migracionlin " +
                     " where z_sys_migracion_id = " + this.get_ID() +
                     " and ad_table_id =" + I_AD_Reference.Table_ID +
@@ -875,6 +885,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             while(rs.next()){
                 ADReference reference = new ADReference(getCtx(), rs.getInt("ad_reference_id"), null);
+                reference.setParentType(rs.getString("TipoSysMigraObjFrom"));
+                reference.setParentName(rs.getString("parentName"));
+                reference.setParentID(rs.getInt("parent_ID"));
+
                 this.cabezalMigracion.getReferenceList().add(reference);
 
                 // Referencia de Lista
@@ -919,7 +933,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         ResultSet rs = null;
 
         try{
-            sql = " select record_id as ad_table_id " +
+            sql = " select record_id as ad_table_id, TipoSysMigraObjFrom, parentName, parent_ID " +
                     " from z_sys_migracionlin " +
                     " where z_sys_migracion_id = " + this.get_ID() +
                     " and ad_table_id =" + I_AD_Table.Table_ID +
@@ -936,6 +950,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 // Exporto esta tabla si no es tipo de entidad Diccionario
                 if (!table.getEntityType().equalsIgnoreCase(X_AD_Table.ENTITYTYPE_Dictionary)){
                     ADTable adTable = new ADTable(getCtx(), rs.getInt("ad_table_id"), null);
+                    adTable.setParentType(rs.getString("TipoSysMigraObjFrom"));
+                    adTable.setParentName(rs.getString("parentName"));
+                    adTable.setParentID(rs.getInt("parent_ID"));
+
                     this.cabezalMigracion.getTableList().add(adTable);
                 }
 
@@ -976,7 +994,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         ResultSet rs = null;
 
         try{
-            sql = " select record_id as ad_process_id " +
+            sql = " select record_id as ad_process_id, TipoSysMigraObjFrom, parentName, parent_ID " +
                     " from z_sys_migracionlin " +
                     " where z_sys_migracion_id = " + this.get_ID() +
                     " and ad_table_id =" + I_AD_Process.Table_ID +
@@ -988,6 +1006,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             while(rs.next()){
                 ADProcess adProcess = new ADProcess(getCtx(), rs.getInt("ad_process_id"), null);
+                adProcess.setParentType(rs.getString("TipoSysMigraObjFrom"));
+                adProcess.setParentName(rs.getString("parentName"));
+                adProcess.setParentID(rs.getInt("parent_ID"));
+
                 this.cabezalMigracion.getProcessList().add(adProcess);
 
                 // Recorro parametros de este proceso para exportar
@@ -1020,7 +1042,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         ResultSet rs = null;
 
         try{
-            sql = " select record_id as ad_window_id " +
+            sql = " select record_id as ad_window_id, TipoSysMigraObjFrom, parentName, parent_ID " +
                     " from z_sys_migracionlin " +
                     " where z_sys_migracion_id = " + this.get_ID() +
                     " and ad_table_id =" + I_AD_Window.Table_ID +
@@ -1058,6 +1080,295 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             rs = null; pstmt = null;
         }
 
+    }
+
+    public String getDataFile() {
+
+        String message = null;
+
+        try{
+
+            if ((this.getFilePathOrName() == null) || (this.getFilePathOrName().trim().equalsIgnoreCase(""))){
+                return "Debe indicar archivo a procesar.";
+            }
+
+            this.cabezalMigracion = null;
+
+            // Deserializo objeto contenido en el archivo de interface
+            Object value = null;
+            FileInputStream os1 = new FileInputStream(this.getFilePathOrName().trim());
+            XMLDecoder decoder = new XMLDecoder(os1);
+            value = decoder.readObject();
+            decoder.close();
+
+            if (value == null){
+                return "No se pudo obtener información desde archivo indicado.";
+            }
+
+            // Obtengo modelo con la información contenido en el archivo
+            this.cabezalMigracion = (CabezalMigracion) value;
+
+            // Recorro objento contenidos en el modelo de datos y los cargo en las lineas de migracion
+
+            // Obtener elementos desde archivo
+            message = this.getElementosFile();
+            if (message != null){
+                return message;
+            }
+
+            // Obtener validaciones
+            message = this.getValidacionesFile();
+            if (message != null){
+                return message;
+            }
+
+            // Obtener referencias
+            message = this.getReferenciasFile();
+            if (message != null){
+                return message;
+            }
+
+            // Obtener tablas
+            message = this.getTablasFile();
+            if (message != null){
+                return message;
+            }
+
+            // Obtener procesos
+            message = this.getProcesosFile();
+            if (message != null){
+                return message;
+            }
+
+            // Obtener ventanas
+            message = this.getVentanasFile();
+            if (message != null){
+                return message;
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
+    }
+
+    /***
+     * Cargo elementos del diccionario leídos previamente desde archivo de interface, en lineas de este proceso.
+     * Xpande. Created by Gabriel Vila on 9/8/19.
+     * @return
+     */
+    private String getElementosFile() {
+
+        String message = null;
+
+        try{
+            for (ADElement adElement: this.cabezalMigracion.getElementList()){
+
+                MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+                sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+                sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_ELEMENTO);
+                sysMigracionLin.setName(adElement.getName());
+                sysMigracionLin.setAD_Table_ID(I_AD_Element.Table_ID);
+                sysMigracionLin.setRecord_ID(adElement.get_ID());
+                sysMigracionLin.setStartDate(adElement.getUpdated());
+                sysMigracionLin.setVersionNo(adElement.get_ValueAsString("VersionNo"));
+                sysMigracionLin.setEntityType(adElement.getEntityType());
+                sysMigracionLin.setIsSelected(true);
+
+                if (adElement.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adElement.getParentType());
+                if (adElement.getParentName() != null) sysMigracionLin.setParentName(adElement.getParentName());
+                if (adElement.getParentID() > 0) sysMigracionLin.setParent_ID(adElement.getParentID());
+
+                sysMigracionLin.saveEx();
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
+    }
+
+    /***
+     * Cargo procesos del diccionario leídos previamente desde archivo de interface, en lineas de este proceso.
+     * Xpande. Created by Gabriel Vila on 9/8/19.
+     * @return
+     */
+    private String getProcesosFile() {
+
+        String message = null;
+
+        try{
+            for (ADProcess adProcess: this.cabezalMigracion.getProcessList()){
+
+                MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+                sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+                sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_PROCESO);
+                sysMigracionLin.setName(adProcess.getName());
+                sysMigracionLin.setAD_Table_ID(I_AD_Process.Table_ID);
+                sysMigracionLin.setRecord_ID(adProcess.get_ID());
+                sysMigracionLin.setStartDate(adProcess.getUpdated());
+                sysMigracionLin.setVersionNo(adProcess.get_ValueAsString("VersionNo"));
+                sysMigracionLin.setEntityType(adProcess.getEntityType());
+                sysMigracionLin.setIsSelected(true);
+
+                if (adProcess.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adProcess.getParentType());
+                if (adProcess.getParentName() != null) sysMigracionLin.setParentName(adProcess.getParentName());
+                if (adProcess.getParentID() > 0) sysMigracionLin.setParent_ID(adProcess.getParentID());
+
+                sysMigracionLin.saveEx();
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
+    }
+
+    /***
+     * Cargo referencias del diccionario leídos previamente desde archivo de interface, en lineas de este proceso.
+     * Xpande. Created by Gabriel Vila on 9/8/19.
+     * @return
+     */
+    private String getReferenciasFile() {
+
+        String message = null;
+
+        try{
+            for (ADReference adReference: this.cabezalMigracion.getReferenceList()){
+
+                MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+                sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+                sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REFERENCIA);
+                sysMigracionLin.setName(adReference.getName());
+                sysMigracionLin.setAD_Table_ID(I_AD_Reference.Table_ID);
+                sysMigracionLin.setRecord_ID(adReference.get_ID());
+                sysMigracionLin.setStartDate(adReference.getUpdated());
+                sysMigracionLin.setVersionNo(adReference.get_ValueAsString("VersionNo"));
+                sysMigracionLin.setEntityType(adReference.getEntityType());
+                sysMigracionLin.setIsSelected(true);
+
+                if (adReference.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adReference.getParentType());
+                if (adReference.getParentName() != null) sysMigracionLin.setParentName(adReference.getParentName());
+                if (adReference.getParentID() > 0) sysMigracionLin.setParent_ID(adReference.getParentID());
+
+                sysMigracionLin.saveEx();
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
+    }
+
+    /***
+     * Cargo tablas del diccionario leídos previamente desde archivo de interface, en lineas de este proceso.
+     * Xpande. Created by Gabriel Vila on 9/8/19.
+     * @return
+     */
+    private String getTablasFile() {
+
+        String message = null;
+
+        try{
+            for (ADTable adTable: this.cabezalMigracion.getTableList()){
+
+                MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+                sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+                sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA);
+                sysMigracionLin.setName(adTable.getName());
+                sysMigracionLin.setAD_Table_ID(I_AD_Table.Table_ID);
+                sysMigracionLin.setRecord_ID(adTable.get_ID());
+                sysMigracionLin.setStartDate(adTable.getUpdated());
+                sysMigracionLin.setVersionNo(adTable.get_ValueAsString("VersionNo"));
+                sysMigracionLin.setEntityType(adTable.getEntityType());
+                sysMigracionLin.setIsSelected(true);
+
+                if (adTable.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adTable.getParentType());
+                if (adTable.getParentName() != null) sysMigracionLin.setParentName(adTable.getParentName());
+                if (adTable.getParentID() > 0) sysMigracionLin.setParent_ID(adTable.getParentID());
+
+                sysMigracionLin.saveEx();
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
+    }
+
+    /***
+     * Cargo validaciones del diccionario leídos previamente desde archivo de interface, en lineas de este proceso.
+     * Xpande. Created by Gabriel Vila on 9/8/19.
+     * @return
+     */
+    private String getValidacionesFile() {
+
+        String message = null;
+
+        try{
+            for (ADVal_Rule adValRule: this.cabezalMigracion.getValRuleList()){
+
+                MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+                sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+                sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_VALIDACION);
+                sysMigracionLin.setName(adValRule.getName());
+                sysMigracionLin.setAD_Table_ID(I_AD_Val_Rule.Table_ID);
+                sysMigracionLin.setRecord_ID(adValRule.get_ID());
+                sysMigracionLin.setStartDate(adValRule.getUpdated());
+                sysMigracionLin.setVersionNo(adValRule.get_ValueAsString("VersionNo"));
+                sysMigracionLin.setEntityType(adValRule.getEntityType());
+                sysMigracionLin.setIsSelected(true);
+
+                if (adValRule.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adValRule.getParentType());
+                if (adValRule.getParentName() != null) sysMigracionLin.setParentName(adValRule.getParentName());
+                if (adValRule.getParentID() > 0) sysMigracionLin.setParent_ID(adValRule.getParentID());
+
+                sysMigracionLin.saveEx();
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
+    }
+
+    /***
+     * Cargo ventanas del diccionario leídos previamente desde archivo de interface, en lineas de este proceso.
+     * Xpande. Created by Gabriel Vila on 9/8/19.
+     * @return
+     */
+    private String getVentanasFile() {
+
+        String message = null;
+
+        try{
+            for (ADWindow adWindow: this.cabezalMigracion.getWindowList()){
+
+                MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+                sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+                sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_VENTANA);
+                sysMigracionLin.setName(adWindow.getName());
+                sysMigracionLin.setAD_Table_ID(I_AD_Window.Table_ID);
+                sysMigracionLin.setRecord_ID(adWindow.get_ID());
+                sysMigracionLin.setStartDate(adWindow.getUpdated());
+                sysMigracionLin.setVersionNo(adWindow.get_ValueAsString("VersionNo"));
+                sysMigracionLin.setEntityType(adWindow.getEntityType());
+                sysMigracionLin.setIsSelected(true);
+
+                sysMigracionLin.saveEx();
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
     }
 
 }

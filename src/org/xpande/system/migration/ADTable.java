@@ -73,6 +73,37 @@ public class ADTable extends PO implements I_AD_Table, I_Persistent
 	}
 	// Fin Xpande.
 
+	// Xpande. Gabriel Vila. 08/09/2019.
+	// Atributos y metodos necesarios para migración de diccionario.
+	private String parentType = null;
+	private String parentName = null;
+	private int parentID = -1;
+
+	public String getParentType() {
+		return parentType;
+	}
+
+	public void setParentType(String parentType) {
+		this.parentType = parentType;
+	}
+
+	public String getParentName() {
+		return parentName;
+	}
+
+	public void setParentName(String parentName) {
+		this.parentName = parentName;
+	}
+
+	public int getParentID() {
+		return parentID;
+	}
+
+	public void setParentID(int parentID) {
+		this.parentID = parentID;
+	}
+	// Fin Xpande
+
 	/** AccessLevel
       * @return 4 - System 
       */
