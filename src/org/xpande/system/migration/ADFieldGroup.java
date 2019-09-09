@@ -18,6 +18,8 @@
 package org.xpande.system.migration;
 
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.compiere.model.I_AD_FieldGroup;
@@ -63,6 +65,20 @@ public class ADFieldGroup extends PO implements I_AD_FieldGroup, I_Persistent
 		super (Env.getCtx());
 	}
 	// Fin Xpande.
+
+	// Xpande. Gabriel Vila. 09/09/2019.
+	// Lista de traducciones para migración de diccionario.
+	private List<Traduccion> traduccionList = new ArrayList<Traduccion>();
+
+	public List<Traduccion> getTraduccionList() {
+		return traduccionList;
+	}
+
+	public void setTraduccionList(List<Traduccion> traduccionList) {
+		this.traduccionList = traduccionList;
+	}
+	// Fin Xpande.
+
 
 	/** AccessLevel
       * @return 4 - System 

@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -822,6 +823,47 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         }
     }
 
+    /***
+     * Agrega vistas de informes seleccionadas para exportar, en este modelo.
+     * Xpande. Created by Gabriel Vila on 8/29/19.
+     */
+    private void exportVistaInformes() {
+
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select record_id as ad_reportview_id, TipoSysMigraObjFrom, parentName, parent_ID " +
+                    " from z_sys_migracionlin " +
+                    " where z_sys_migracion_id = " + this.get_ID() +
+                    " and ad_table_id =" + I_AD_ReportView.Table_ID +
+                    " and isselected ='Y'" +
+                    " order by created ";
+
+            pstmt = DB.prepareStatement(sql, get_TrxName());
+            rs = pstmt.executeQuery();
+
+            while(rs.next()){
+                ADReportView reportView = new ADReportView(getCtx(), rs.getInt("ad_reportview_id"), null);
+                reportView.setParentType(rs.getString("TipoSysMigraObjFrom"));
+                reportView.setParentName(rs.getString("parentName"));
+                reportView.setParentID(rs.getInt("parent_ID"));
+
+                List<Traduccion> traduccionList = this.getTraducciones(reportView.Table_Name, reportView.get_ID());
+                reportView.setTraduccionList(traduccionList);
+
+                this.cabezalMigracion.getReportViewList().add(reportView);
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+            rs = null; pstmt = null;
+        }
+    }
 
     /***
      * Agrega elementos seleccionados para exportar, en este modelo.
@@ -849,6 +891,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 element.setParentType(rs.getString("TipoSysMigraObjFrom"));
                 element.setParentName(rs.getString("parentName"));
                 element.setParentID(rs.getInt("parent_ID"));
+
+                List<Traduccion> traduccionList = this.getTraducciones(element.Table_Name, element.get_ID());
+                element.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getElementList().add(element);
         	}
@@ -889,6 +934,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 reference.setParentName(rs.getString("parentName"));
                 reference.setParentID(rs.getInt("parent_ID"));
 
+                List<Traduccion> traduccionList = this.getTraducciones(reference.Table_Name, reference.get_ID());
+                reference.setTraduccionList(traduccionList);
+
                 this.cabezalMigracion.getReferenceList().add(reference);
 
                 // Referencia de Lista
@@ -897,6 +945,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     if (mRefList != null){
                         ADRef_List adRefList = new ADRef_List(getCtx(), mRefList.get_ID(), null);
                         if (adRefList != null){
+
+                            List<Traduccion> traduccionRefList = this.getTraducciones(adRefList.Table_Name, adRefList.get_ID());
+                            adRefList.setTraduccionList(traduccionRefList);
+
                             this.cabezalMigracion.getRefListList().add(adRefList);
                         }
                     }
@@ -920,6 +972,50 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             rs = null; pstmt = null;
         }
 
+    }
+
+    /***
+     * Obtiene y retorna lista de traducciones para determinado registro-tabla.
+     * Xpande. Created by Gabriel Vila on 9/9/19.
+     * @param tableName
+     * @param recordID
+     * @return
+     */
+    private List<Traduccion> getTraducciones(String tableName, int recordID) {
+
+        List<Traduccion> traduccionList = new ArrayList<Traduccion>();
+
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select name, description, help, ad_language " +
+                    " from " + tableName + "_trl " +
+                    " where " + tableName + "_id =" + recordID;
+
+        	pstmt = DB.prepareStatement(sql, get_TrxName());
+        	rs = pstmt.executeQuery();
+
+        	while(rs.next()){
+        	    Traduccion  traduccion = new Traduccion();
+        	    traduccion.setName(rs.getString("name"));
+                traduccion.setDescription(rs.getString("description"));
+                traduccion.setHelp(rs.getString("help"));
+                traduccion.setLanguage(rs.getString("ad_language"));
+
+                traduccionList.add(traduccion);
+        	}
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+        	rs = null; pstmt = null;
+        }
+
+        return traduccionList;
     }
 
     /***
@@ -954,6 +1050,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     adTable.setParentName(rs.getString("parentName"));
                     adTable.setParentID(rs.getInt("parent_ID"));
 
+                    List<Traduccion> traduccionList = this.getTraducciones(adTable.Table_Name, adTable.get_ID());
+                    adTable.setTraduccionList(traduccionList);
+
                     this.cabezalMigracion.getTableList().add(adTable);
                 }
 
@@ -962,11 +1061,19 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 for (MColumn column: columnList){
                     if (!table.getEntityType().equalsIgnoreCase(X_AD_Table.ENTITYTYPE_Dictionary)){
                         ADColumn adColumn = new ADColumn(getCtx(), column.get_ID(), null);
+
+                        List<Traduccion> traduccionColList = this.getTraducciones(adColumn.Table_Name, adColumn.get_ID());
+                        adColumn.setTraduccionList(traduccionColList);
+
                         this.cabezalMigracion.getColumnList().add(adColumn);
                     }
                     else {
                         if (!column.getEntityType().equalsIgnoreCase(X_AD_Column.ENTITYTYPE_Dictionary)){
                             ADColumn adColumn = new ADColumn(getCtx(), column.get_ID(), null);
+
+                            List<Traduccion> traduccionColList = this.getTraducciones(adColumn.Table_Name, adColumn.get_ID());
+                            adColumn.setTraduccionList(traduccionColList);
+
                             this.cabezalMigracion.getColumnList().add(adColumn);
                         }
                     }
@@ -1010,6 +1117,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 adProcess.setParentName(rs.getString("parentName"));
                 adProcess.setParentID(rs.getInt("parent_ID"));
 
+                List<Traduccion> traduccionList = this.getTraducciones(adProcess.Table_Name, adProcess.get_ID());
+                adProcess.setTraduccionList(traduccionList);
+
                 this.cabezalMigracion.getProcessList().add(adProcess);
 
                 // Recorro parametros de este proceso para exportar
@@ -1017,6 +1127,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 MProcessPara[] processParaList = process.getParameters();
                 for (int i = 0; i < processParaList.length; i++){
                     ADProcessPara adProcessPara = new ADProcessPara(getCtx(), processParaList[i].get_ID(), null);
+
+                    List<Traduccion> traduccionParaList = this.getTraducciones(adProcessPara.Table_Name, adProcessPara.get_ID());
+                    adProcessPara.setTraduccionList(traduccionParaList);
+
                     this.cabezalMigracion.getProcessParaList().add(adProcessPara);
                 }
             }
@@ -1054,6 +1168,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             while(rs.next()){
                 ADWindow adWindow = new ADWindow(getCtx(), rs.getInt("ad_window_id"), null);
+
+                List<Traduccion> traduccionList = this.getTraducciones(adWindow.Table_Name, adWindow.get_ID());
+                adWindow.setTraduccionList(traduccionList);
+
                 this.cabezalMigracion.getWindowList().add(adWindow);
 
                 // Recorro Tabs de este proceso para exportar
@@ -1061,12 +1179,20 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 MTab[] tabList = window.getTabs(false, null);
                 for (int i = 0; i < tabList.length; i++){
                     ADTab adTab = new ADTab(getCtx(), tabList[i].get_ID(), null);
+
+                    List<Traduccion> traduccionTabList = this.getTraducciones(adTab.Table_Name, adTab.get_ID());
+                    adTab.setTraduccionList(traduccionTabList);
+
                     this.cabezalMigracion.getTabList().add(adTab);
 
                     // Recorro Fields de esta tab para exportar
                     MField[] fieldList = tabList[i].getFields(false, null);
                     for (int j = 0; j < fieldList.length; j++){
                         ADField adField = new ADField(getCtx(), fieldList[j].get_ID(), null);
+
+                        List<Traduccion> traduccionFieldList = this.getTraducciones(adField.Table_Name, adField.get_ID());
+                        adField.setTraduccionList(traduccionFieldList);
+
                         this.cabezalMigracion.getFieldList().add(adField);
                     }
                 }
