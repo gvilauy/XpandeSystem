@@ -94,6 +94,19 @@ public interface I_Z_Sys_MigracionLin
 	  */
 	public int getCreatedBy();
 
+    /** Column name Destino_ID */
+    public static final String COLUMNNAME_Destino_ID = "Destino_ID";
+
+	/** Set Destino_ID.
+	  * ID Destino
+	  */
+	public void setDestino_ID(int Destino_ID);
+
+	/** Get Destino_ID.
+	  * ID Destino
+	  */
+	public int getDestino_ID();
+
     /** Column name EntityType */
     public static final String COLUMNNAME_EntityType = "EntityType";
 
@@ -108,6 +121,19 @@ public interface I_Z_Sys_MigracionLin
  Determines ownership and synchronization
 	  */
 	public String getEntityType();
+
+    /** Column name ExisteItem */
+    public static final String COLUMNNAME_ExisteItem = "ExisteItem";
+
+	/** Set ExisteItem.
+	  * Si existe o no un determinado item genérico
+	  */
+	public void setExisteItem(boolean ExisteItem);
+
+	/** Get ExisteItem.
+	  * Si existe o no un determinado item genérico
+	  */
+	public boolean isExisteItem();
 
     /** Column name IsActive */
     public static final String COLUMNNAME_IsActive = "IsActive";

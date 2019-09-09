@@ -31,7 +31,7 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20190824L;
+	private static final long serialVersionUID = 20190909L;
 
     /** Standard Constructor */
     public X_Z_Sys_MigracionLin (Properties ctx, int Z_Sys_MigracionLin_ID, String trxName)
@@ -40,6 +40,8 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
       /** if (Z_Sys_MigracionLin_ID == 0)
         {
 			setAD_Table_ID (0);
+			setExisteItem (false);
+// N
 			setIsSelected (false);
 // N
 			setName (null);
@@ -106,6 +108,29 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 		return ii.intValue();
 	}
 
+	/** Set Destino_ID.
+		@param Destino_ID 
+		ID Destino
+	  */
+	public void setDestino_ID (int Destino_ID)
+	{
+		if (Destino_ID < 1) 
+			set_Value (COLUMNNAME_Destino_ID, null);
+		else 
+			set_Value (COLUMNNAME_Destino_ID, Integer.valueOf(Destino_ID));
+	}
+
+	/** Get Destino_ID.
+		@return ID Destino
+	  */
+	public int getDestino_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_Destino_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
+	}
+
 	/** EntityType AD_Reference_ID=389 */
 	public static final int ENTITYTYPE_AD_Reference_ID=389;
 	/** Set Entity Type.
@@ -124,6 +149,30 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	public String getEntityType () 
 	{
 		return (String)get_Value(COLUMNNAME_EntityType);
+	}
+
+	/** Set ExisteItem.
+		@param ExisteItem 
+		Si existe o no un determinado item genérico
+	  */
+	public void setExisteItem (boolean ExisteItem)
+	{
+		set_Value (COLUMNNAME_ExisteItem, Boolean.valueOf(ExisteItem));
+	}
+
+	/** Get ExisteItem.
+		@return Si existe o no un determinado item genérico
+	  */
+	public boolean isExisteItem () 
+	{
+		Object oo = get_Value(COLUMNNAME_ExisteItem);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
 	}
 
 	/** Set Selected.

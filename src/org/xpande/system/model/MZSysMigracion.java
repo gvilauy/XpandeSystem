@@ -6,6 +6,7 @@ import org.compiere.util.DB;
 import org.compiere.util.ValueNamePair;
 import org.xpande.system.migration.*;
 
+import javax.el.MapELResolver;
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.FileInputStream;
@@ -1306,6 +1307,17 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (adElement.getParentName() != null) sysMigracionLin.setParentName(adElement.getParentName());
                 if (adElement.getParentID() > 0) sysMigracionLin.setParent_ID(adElement.getParentID());
 
+                // Verifico si existe item con el mismo nombre en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_Element.Table_Name, " Name ='" + adElement.getName() + "'", null);
+                if (itemIDs.length > 0){
+                    MElement elementDB = new MElement(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(elementDB.get_ID());
+                }
+                else {
+                    sysMigracionLin.setExisteItem(false);
+                }
+
                 sysMigracionLin.saveEx();
             }
         }
@@ -1342,6 +1354,17 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (adProcess.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adProcess.getParentType());
                 if (adProcess.getParentName() != null) sysMigracionLin.setParentName(adProcess.getParentName());
                 if (adProcess.getParentID() > 0) sysMigracionLin.setParent_ID(adProcess.getParentID());
+
+                // Verifico si existe item con el mismo nombre en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_Process.Table_Name, " Name ='" + adProcess.getName() + "'", null);
+                if (itemIDs.length > 0){
+                    MProcess processDB = new MProcess(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(processDB.get_ID());
+                }
+                else {
+                    sysMigracionLin.setExisteItem(false);
+                }
 
                 sysMigracionLin.saveEx();
             }
@@ -1380,6 +1403,17 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (adReference.getParentName() != null) sysMigracionLin.setParentName(adReference.getParentName());
                 if (adReference.getParentID() > 0) sysMigracionLin.setParent_ID(adReference.getParentID());
 
+                // Verifico si existe item con el mismo nombre en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_Reference.Table_Name, " Name ='" + adReference.getName() + "'", null);
+                if (itemIDs.length > 0){
+                    X_AD_Reference referenceDB = new X_AD_Reference(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(referenceDB.get_ID());
+                }
+                else {
+                    sysMigracionLin.setExisteItem(false);
+                }
+
                 sysMigracionLin.saveEx();
             }
         }
@@ -1416,6 +1450,17 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (adTable.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adTable.getParentType());
                 if (adTable.getParentName() != null) sysMigracionLin.setParentName(adTable.getParentName());
                 if (adTable.getParentID() > 0) sysMigracionLin.setParent_ID(adTable.getParentID());
+
+                // Verifico si existe item con el mismo nombre en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_Table.Table_Name, " Name ='" + adTable.getName() + "'", null);
+                if (itemIDs.length > 0){
+                    X_AD_Table tableDB = new X_AD_Table(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(tableDB.get_ID());
+                }
+                else {
+                    sysMigracionLin.setExisteItem(false);
+                }
 
                 sysMigracionLin.saveEx();
             }
@@ -1454,6 +1499,17 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (adValRule.getParentName() != null) sysMigracionLin.setParentName(adValRule.getParentName());
                 if (adValRule.getParentID() > 0) sysMigracionLin.setParent_ID(adValRule.getParentID());
 
+                // Verifico si existe item con el mismo nombre en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_Val_Rule.Table_Name, " Name ='" + adValRule.getName() + "'", null);
+                if (itemIDs.length > 0){
+                    X_AD_Val_Rule valRuleDB = new X_AD_Val_Rule(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(valRuleDB.get_ID());
+                }
+                else {
+                    sysMigracionLin.setExisteItem(false);
+                }
+
                 sysMigracionLin.saveEx();
             }
         }
@@ -1486,6 +1542,17 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 sysMigracionLin.setVersionNo(adWindow.get_ValueAsString("VersionNo"));
                 sysMigracionLin.setEntityType(adWindow.getEntityType());
                 sysMigracionLin.setIsSelected(true);
+
+                // Verifico si existe item con el mismo nombre en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_Window.Table_Name, " Name ='" + adWindow.getName() + "'", null);
+                if (itemIDs.length > 0){
+                    X_AD_Window windowDB = new X_AD_Window(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(windowDB.get_ID());
+                }
+                else {
+                    sysMigracionLin.setExisteItem(false);
+                }
 
                 sysMigracionLin.saveEx();
             }
