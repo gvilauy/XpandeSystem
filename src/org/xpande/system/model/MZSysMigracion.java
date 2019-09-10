@@ -365,6 +365,108 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             if (parentID > 0) sysMigracionLin.setParent_ID(parentID);
 
             sysMigracionLin.saveEx();
+
+            // Referencia de Lista
+            for (ValueNamePair vp : MRefList.getList(getCtx(), reference.getAD_Reference_ID(), false)){
+                MRefList mRefList = MRefList.get(getCtx(), reference.getAD_Reference_ID(), vp.getValue(), null);
+                if (mRefList != null){
+                    ADRef_List adRefList = new ADRef_List(getCtx(), mRefList.get_ID(), null);
+                    if (adRefList != null){
+                        X_AD_Ref_List refList = new X_AD_Ref_List(getCtx(), adRefList.get_ID(), null);
+                        this.setReferenciaListLin(refList, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REFERENCIA, reference.getName(), reference.get_ID());
+                    }
+                }
+            }
+
+            // Referencia de Tabla
+            MRefTable mRefTable = MRefTable.getById(getCtx(), reference.getAD_Reference_ID());
+            if (mRefTable != null){
+                ADRef_Table adRefTable = new ADRef_Table(getCtx(), mRefTable.get_ID(), null);
+                if (adRefTable != null){
+                    X_AD_Ref_Table refTable = new X_AD_Ref_Table(getCtx(), adRefTable.get_ID(), null);
+                    this.setReferenciaTableLin(refTable, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REFERENCIA, reference.getName(), reference.get_ID());
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Setea linea de este documento con datos de una Referencia Lista del diccionario.
+     * Xpande. Created by Gabriel Vila on 8/24/19.
+     * @param reference
+     * @param parentType
+     * @param parentName
+     * @param parentID
+     */
+    private void setReferenciaListLin(X_AD_Ref_List reference, String parentType, String parentName, int parentID){
+
+        try{
+            if (reference.getEntityType().equalsIgnoreCase(X_AD_Reference.ENTITYTYPE_Dictionary)){
+                return;
+            }
+            if (this.existeTablaRecord(I_AD_Ref_List.Table_ID, reference.get_ID())){
+                return;
+            }
+
+            MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+            sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+            sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REF_LISTA);
+            sysMigracionLin.setName(reference.getName());
+            sysMigracionLin.setAD_Table_ID(I_AD_Ref_List.Table_ID);
+            sysMigracionLin.setRecord_ID(reference.get_ID());
+            sysMigracionLin.setStartDate(reference.getUpdated());
+            sysMigracionLin.setVersionNo(reference.get_ValueAsString("VersionNo"));
+            sysMigracionLin.setEntityType(reference.getEntityType());
+            sysMigracionLin.setIsSelected(true);
+
+            if (parentType != null) sysMigracionLin.setTipoSysMigraObjFrom(parentType);
+            if (parentName != null) sysMigracionLin.setParentName(parentName);
+            if (parentID > 0) sysMigracionLin.setParent_ID(parentID);
+
+            sysMigracionLin.saveEx();
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Setea linea de este documento con datos de una Referencia Tabla del diccionario.
+     * Xpande. Created by Gabriel Vila on 8/24/19.
+     * @param reference
+     * @param parentType
+     * @param parentName
+     * @param parentID
+     */
+    private void setReferenciaTableLin(X_AD_Ref_Table reference, String parentType, String parentName, int parentID){
+
+        try{
+            if (reference.getEntityType().equalsIgnoreCase(X_AD_Reference.ENTITYTYPE_Dictionary)){
+                return;
+            }
+            if (this.existeTablaRecord(I_AD_Ref_List.Table_ID, reference.get_ID())){
+                return;
+            }
+
+            MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+            sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+            sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REF_TABLA);
+            sysMigracionLin.setName(reference.get_TableName());
+            sysMigracionLin.setAD_Table_ID(I_AD_Ref_Table.Table_ID);
+            sysMigracionLin.setRecord_ID(reference.get_ID());
+            sysMigracionLin.setStartDate(reference.getUpdated());
+            sysMigracionLin.setVersionNo(reference.get_ValueAsString("VersionNo"));
+            sysMigracionLin.setEntityType(reference.getEntityType());
+            sysMigracionLin.setIsSelected(true);
+
+            if (parentType != null) sysMigracionLin.setTipoSysMigraObjFrom(parentType);
+            if (parentName != null) sysMigracionLin.setParentName(parentName);
+            if (parentID > 0) sysMigracionLin.setParent_ID(parentID);
+
+            sysMigracionLin.saveEx();
         }
         catch (Exception e){
             throw new AdempiereException(e);
@@ -552,11 +654,58 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             sysMigracionLin.saveEx();
 
+            // Recorro parametros de este proceso
+            MProcess mProcess = new MProcess(getCtx(), process.get_ID(), null);
+            MProcessPara[] processParaList = mProcess.getParameters();
+            for (int i = 0; i < processParaList.length; i++){
+                this.setProcesoParaLin(processParaList[i], X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_PROCESO, process.getName(), process.get_ID());
+            }
+
             // Si tengo vista de informe asociada, la proceso
             if (process.getAD_ReportView_ID() > 0){
                 X_AD_ReportView reportView = (X_AD_ReportView) process.getAD_ReportView();
                 this.setVistaInformeLin(reportView, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_PROCESO, process.getName(), process.get_ID());
             }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Setea linea de este documento con datos de un Parametro de Proceso del diccionario.
+     * Xpande. Created by Gabriel Vila on 8/24/19.
+     * @param processPara
+     * @param parentType
+     * @param parentName
+     * @param parentID
+     */
+    private void setProcesoParaLin(X_AD_Process_Para processPara, String parentType, String parentName, int parentID){
+
+        try{
+            if (processPara.getEntityType().equalsIgnoreCase(X_AD_Process.ENTITYTYPE_Dictionary)){
+                return;
+            }
+            if (this.existeTablaRecord(I_AD_Process_Para.Table_ID, processPara.get_ID())){
+                return;
+            }
+
+            MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+            sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+            sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_PROCESO_PARAM);
+            sysMigracionLin.setName(processPara.getName());
+            sysMigracionLin.setAD_Table_ID(I_AD_Process_Para.Table_ID);
+            sysMigracionLin.setRecord_ID(processPara.get_ID());
+            sysMigracionLin.setStartDate(processPara.getUpdated());
+            sysMigracionLin.setVersionNo(processPara.get_ValueAsString("VersionNo"));
+            sysMigracionLin.setEntityType(processPara.getEntityType());
+            sysMigracionLin.setIsSelected(true);
+
+            if (parentType != null) sysMigracionLin.setTipoSysMigraObjFrom(parentType);
+            if (parentName != null) sysMigracionLin.setParentName(parentName);
+            if (parentID > 0) sysMigracionLin.setParent_ID(parentID);
+
+            sysMigracionLin.saveEx();
         }
         catch (Exception e){
             throw new AdempiereException(e);
@@ -757,6 +906,12 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             // Exporto Referencias
             this.exportReferencias();
 
+            // Exporto Referencias Lista
+            this.exportReferenciasLista();
+
+            // Exporto Referencias Tabla
+            this.exportReferenciasTabla();
+
             // Exporto Elementos
             this.exportElementos();
 
@@ -939,30 +1094,6 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 reference.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getReferenceList().add(reference);
-
-                // Referencia de Lista
-                for (ValueNamePair vp : MRefList.getList(getCtx(), reference.getAD_Reference_ID(), false)){
-                    MRefList mRefList = MRefList.get(getCtx(), reference.getAD_Reference_ID(), vp.getValue(), null);
-                    if (mRefList != null){
-                        ADRef_List adRefList = new ADRef_List(getCtx(), mRefList.get_ID(), null);
-                        if (adRefList != null){
-
-                            List<Traduccion> traduccionRefList = this.getTraducciones(adRefList.Table_Name, adRefList.get_ID());
-                            adRefList.setTraduccionList(traduccionRefList);
-
-                            this.cabezalMigracion.getRefListList().add(adRefList);
-                        }
-                    }
-                }
-
-                // Referencia de Tabla
-                MRefTable mRefTable = MRefTable.getById(getCtx(), reference.getAD_Reference_ID());
-                if (mRefTable != null){
-                    ADRef_Table refTable = new ADRef_Table(getCtx(), mRefTable.get_ID(), null);
-                    if (refTable != null){
-                        this.cabezalMigracion.getRefTableList().add(refTable);
-                    }
-                }
             }
         }
         catch (Exception e){
@@ -973,6 +1104,87 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             rs = null; pstmt = null;
         }
 
+    }
+
+    /***
+     * Agrega referencias de lista seleccionadas para exportar, en este modelo.
+     * Xpande. Created by Gabriel Vila on 8/29/19.
+     */
+    private void exportReferenciasLista() {
+
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select record_id as ad_ref_list_id, TipoSysMigraObjFrom, parentName, parent_ID " +
+                    " from z_sys_migracionlin " +
+                    " where z_sys_migracion_id = " + this.get_ID() +
+                    " and ad_table_id =" + I_AD_Ref_List.Table_ID +
+                    " and isselected ='Y'" +
+                    " order by created ";
+
+            pstmt = DB.prepareStatement(sql, get_TrxName());
+            rs = pstmt.executeQuery();
+
+            while(rs.next()){
+                ADRef_List adRefList = new ADRef_List(getCtx(), rs.getInt("ad_ref_list_id"), null);
+                adRefList.setParentType(rs.getString("TipoSysMigraObjFrom"));
+                adRefList.setParentName(rs.getString("parentName"));
+                adRefList.setParentID(rs.getInt("parent_ID"));
+
+                List<Traduccion> traduccionRefList = this.getTraducciones(adRefList.Table_Name, adRefList.get_ID());
+                adRefList.setTraduccionList(traduccionRefList);
+
+                this.cabezalMigracion.getRefListList().add(adRefList);
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+            rs = null; pstmt = null;
+        }
+    }
+
+    /***
+     * Agrega referencias de tabla seleccionadas para exportar, en este modelo.
+     * Xpande. Created by Gabriel Vila on 8/29/19.
+     */
+    private void exportReferenciasTabla() {
+
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select record_id as ad_ref_table_id, TipoSysMigraObjFrom, parentName, parent_ID " +
+                    " from z_sys_migracionlin " +
+                    " where z_sys_migracion_id = " + this.get_ID() +
+                    " and ad_table_id =" + I_AD_Ref_Table.Table_ID +
+                    " and isselected ='Y'" +
+                    " order by created ";
+
+            pstmt = DB.prepareStatement(sql, get_TrxName());
+            rs = pstmt.executeQuery();
+
+            while(rs.next()){
+                ADRef_Table adRefTable = new ADRef_Table(getCtx(), rs.getInt("ad_ref_table_id"), null);
+                adRefTable.setParentType(rs.getString("TipoSysMigraObjFrom"));
+                adRefTable.setParentName(rs.getString("parentName"));
+                adRefTable.setParentID(rs.getInt("parent_ID"));
+
+                this.cabezalMigracion.getRefTableList().add(adRefTable);
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+            rs = null; pstmt = null;
+        }
     }
 
     /***
@@ -1122,18 +1334,49 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 adProcess.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getProcessList().add(adProcess);
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+            rs = null; pstmt = null;
+        }
 
-                // Recorro parametros de este proceso para exportar
-                MProcess process = new MProcess(getCtx(), rs.getInt("ad_process_id"), null);
-                MProcessPara[] processParaList = process.getParameters();
-                for (int i = 0; i < processParaList.length; i++){
-                    ADProcessPara adProcessPara = new ADProcessPara(getCtx(), processParaList[i].get_ID(), null);
+    }
 
-                    List<Traduccion> traduccionParaList = this.getTraducciones(adProcessPara.Table_Name, adProcessPara.get_ID());
-                    adProcessPara.setTraduccionList(traduccionParaList);
+    /***
+     * Agrega Parametros de Proceso seleccionadas para exportar, en este modelo.
+     * Xpande. Created by Gabriel Vila on 9/2/19.
+     */
+    private void exportProcesosParam() {
 
-                    this.cabezalMigracion.getProcessParaList().add(adProcessPara);
-                }
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select record_id as ad_process_para_id, TipoSysMigraObjFrom, parentName, parent_ID " +
+                    " from z_sys_migracionlin " +
+                    " where z_sys_migracion_id = " + this.get_ID() +
+                    " and ad_table_id =" + I_AD_Process_Para.Table_ID +
+                    " and isselected ='Y'" +
+                    " order by created ";
+
+            pstmt = DB.prepareStatement(sql, get_TrxName());
+            rs = pstmt.executeQuery();
+
+            while(rs.next()){
+                ADProcessPara adProcessPara = new ADProcessPara(getCtx(), rs.getInt("ad_process_para_id"), null);
+                adProcessPara.setParentType(rs.getString("TipoSysMigraObjFrom"));
+                adProcessPara.setParentName(rs.getString("parentName"));
+                adProcessPara.setParentID(rs.getInt("parent_ID"));
+
+                List<Traduccion> traduccionParaList = this.getTraducciones(adProcessPara.Table_Name, adProcessPara.get_ID());
+                adProcessPara.setTraduccionList(traduccionParaList);
+
+                this.cabezalMigracion.getProcessParaList().add(adProcessPara);
             }
         }
         catch (Exception e){

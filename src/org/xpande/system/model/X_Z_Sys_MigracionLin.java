@@ -309,6 +309,22 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	public static final String TIPOSYSMIGRAOBJ_ELEMENTO = "ELEMENTO";
 	/** REPORTVIEW = REPORTVIEW */
 	public static final String TIPOSYSMIGRAOBJ_REPORTVIEW = "REPORTVIEW";
+	/** REF_LISTA = REF_LISTA */
+	public static final String TIPOSYSMIGRAOBJ_REF_LISTA = "REF_LISTA";
+	/** REF_TABLA = REF_TABLA */
+	public static final String TIPOSYSMIGRAOBJ_REF_TABLA = "REF_TABLA";
+	/** PROCESO_PARAM = PROCESO_PARAM */
+	public static final String TIPOSYSMIGRAOBJ_PROCESO_PARAM = "PROCESO_PARAM";
+	/** COLUMNA = COLUMNA */
+	public static final String TIPOSYSMIGRAOBJ_COLUMNA = "COLUMNA";
+	/** PESTANIA = PESTANIA */
+	public static final String TIPOSYSMIGRAOBJ_PESTANIA = "PESTANIA";
+	/** FIELD = FIELD */
+	public static final String TIPOSYSMIGRAOBJ_FIELD = "FIELD";
+	/** SMARTBROWSER = SMARTBROWSER */
+	public static final String TIPOSYSMIGRAOBJ_SMARTBROWSER = "SMARTBROWSER";
+	/** SB_VIEW = SB_VIEW */
+	public static final String TIPOSYSMIGRAOBJ_SB_VIEW = "SB_VIEW";
 	/** Set TipoSysMigraObj.
 		@param TipoSysMigraObj 
 		Tipo de objeto de diccionario de datos en proceso de migración
@@ -343,6 +359,22 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	public static final String TIPOSYSMIGRAOBJFROM_ELEMENTO = "ELEMENTO";
 	/** REPORTVIEW = REPORTVIEW */
 	public static final String TIPOSYSMIGRAOBJFROM_REPORTVIEW = "REPORTVIEW";
+	/** REF_LISTA = REF_LISTA */
+	public static final String TIPOSYSMIGRAOBJFROM_REF_LISTA = "REF_LISTA";
+	/** REF_TABLA = REF_TABLA */
+	public static final String TIPOSYSMIGRAOBJFROM_REF_TABLA = "REF_TABLA";
+	/** PROCESO_PARAM = PROCESO_PARAM */
+	public static final String TIPOSYSMIGRAOBJFROM_PROCESO_PARAM = "PROCESO_PARAM";
+	/** COLUMNA = COLUMNA */
+	public static final String TIPOSYSMIGRAOBJFROM_COLUMNA = "COLUMNA";
+	/** PESTANIA = PESTANIA */
+	public static final String TIPOSYSMIGRAOBJFROM_PESTANIA = "PESTANIA";
+	/** FIELD = FIELD */
+	public static final String TIPOSYSMIGRAOBJFROM_FIELD = "FIELD";
+	/** SMARTBROWSER = SMARTBROWSER */
+	public static final String TIPOSYSMIGRAOBJFROM_SMARTBROWSER = "SMARTBROWSER";
+	/** SB_VIEW = SB_VIEW */
+	public static final String TIPOSYSMIGRAOBJFROM_SB_VIEW = "SB_VIEW";
 	/** Set TipoSysMigraObjFrom.
 		@param TipoSysMigraObjFrom 
 		Tipo de objeto (fuente) de diccionario de datos en proceso de migración
