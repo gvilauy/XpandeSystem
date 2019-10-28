@@ -447,7 +447,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             if (reference.getEntityType().equalsIgnoreCase(X_AD_Reference.ENTITYTYPE_Dictionary)){
                 return;
             }
-            if (this.existeTablaRecord(I_AD_Ref_List.Table_ID, reference.get_ID())){
+            if (this.existeTablaRecord(I_AD_Ref_Table.Table_ID, reference.get_ID())){
                 return;
             }
 
@@ -1531,6 +1531,18 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 return message;
             }
 
+            // Obtener referencias de list
+            message = this.getReferenciasListFile();
+            if (message != null){
+                return message;
+            }
+
+            // Obtener referencias de Tabla
+            message = this.getReferenciasTableFile();
+            if (message != null){
+                return message;
+            }
+
             // Obtener tablas
             message = this.getTablasFile();
             if (message != null){
@@ -1683,6 +1695,102 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 int[] itemIDs = PO.getAllIDs(X_AD_Reference.Table_Name, " Name ='" + adReference.getName() + "'", null);
                 if (itemIDs.length > 0){
                     X_AD_Reference referenceDB = new X_AD_Reference(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(referenceDB.get_ID());
+                }
+                else {
+                    sysMigracionLin.setExisteItem(false);
+                }
+
+                sysMigracionLin.saveEx();
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
+    }
+
+    /***
+     * Cargo referencias de lista del diccionario leídos previamente desde archivo de interface, en lineas de este proceso.
+     * Xpande. Created by Gabriel Vila on 10/28/19.
+     * @return
+     */
+    private String getReferenciasListFile() {
+
+        String message = null;
+
+        try{
+            for (ADRef_List adRefList: this.cabezalMigracion.getRefListList()){
+
+                MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+                sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+                sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REF_LISTA);
+                sysMigracionLin.setName(adRefList.getName());
+                sysMigracionLin.setAD_Table_ID(I_AD_Ref_List.Table_ID);
+                sysMigracionLin.setRecord_ID(adRefList.get_ID());
+                sysMigracionLin.setStartDate(adRefList.getUpdated());
+                sysMigracionLin.setVersionNo(adRefList.get_ValueAsString("VersionNo"));
+                sysMigracionLin.setEntityType(adRefList.getEntityType());
+                sysMigracionLin.setIsSelected(true);
+
+                if (adRefList.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adRefList.getParentType());
+                if (adRefList.getParentName() != null) sysMigracionLin.setParentName(adRefList.getParentName());
+                if (adRefList.getParentID() > 0) sysMigracionLin.setParent_ID(adRefList.getParentID());
+
+                // Verifico si existe item con el mismo nombre en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_Ref_List.Table_Name, " Name ='" + adRefList.getName() + "'", null);
+                if (itemIDs.length > 0){
+                    X_AD_Ref_List referenceDB = new X_AD_Ref_List(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(referenceDB.get_ID());
+                }
+                else {
+                    sysMigracionLin.setExisteItem(false);
+                }
+
+                sysMigracionLin.saveEx();
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
+    }
+
+    /***
+     * Cargo referencias de tabla del diccionario leídos previamente desde archivo de interface, en lineas de este proceso.
+     * Xpande. Created by Gabriel Vila on 10/28/19.
+     * @return
+     */
+    private String getReferenciasTableFile() {
+
+        String message = null;
+
+        try{
+            for (ADRef_Table adRefTable: this.cabezalMigracion.getRefTableList()){
+
+                MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+                sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+                sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REF_TABLA);
+                sysMigracionLin.setName(adRefTable.get_TableName());
+                sysMigracionLin.setAD_Table_ID(I_AD_Ref_Table.Table_ID);
+                sysMigracionLin.setRecord_ID(adRefTable.get_ID());
+                sysMigracionLin.setStartDate(adRefTable.getUpdated());
+                sysMigracionLin.setVersionNo(adRefTable.get_ValueAsString("VersionNo"));
+                sysMigracionLin.setEntityType(adRefTable.getEntityType());
+                sysMigracionLin.setIsSelected(true);
+
+                if (adRefTable.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adRefTable.getParentType());
+                if (adRefTable.getParentName() != null) sysMigracionLin.setParentName(adRefTable.getParentName());
+                if (adRefTable.getParentID() > 0) sysMigracionLin.setParent_ID(adRefTable.getParentID());
+
+                // Verifico si existe item con el mismo nombre en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_Ref_Table.Table_Name, " TableName ='" + adRefTable.get_TableName() + "'", null);
+                if (itemIDs.length > 0){
+                    X_AD_Ref_Table referenceDB = new X_AD_Ref_Table(getCtx(), itemIDs[0], null);
                     sysMigracionLin.setExisteItem(true);
                     sysMigracionLin.setDestino_ID(referenceDB.get_ID());
                 }
