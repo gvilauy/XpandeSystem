@@ -1006,7 +1006,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 reportView.setParentName(rs.getString("parentName"));
                 reportView.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionList = this.getTraducciones(reportView.Table_Name, reportView.get_ID());
+                List<Traduccion> traduccionList = this.getTraducciones(reportView.Table_Name, reportView.get_ID(), true, true);
                 reportView.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getReportViewList().add(reportView);
@@ -1048,7 +1048,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 element.setParentName(rs.getString("parentName"));
                 element.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionList = this.getTraducciones(element.Table_Name, element.get_ID());
+                List<Traduccion> traduccionList = this.getTraducciones(element.Table_Name, element.get_ID(), true, true);
                 element.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getElementList().add(element);
@@ -1090,7 +1090,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 reference.setParentName(rs.getString("parentName"));
                 reference.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionList = this.getTraducciones(reference.Table_Name, reference.get_ID());
+                List<Traduccion> traduccionList = this.getTraducciones(reference.Table_Name, reference.get_ID(), true, true);
                 reference.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getReferenceList().add(reference);
@@ -1133,7 +1133,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 adRefList.setParentName(rs.getString("parentName"));
                 adRefList.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionRefList = this.getTraducciones(adRefList.Table_Name, adRefList.get_ID());
+                List<Traduccion> traduccionRefList = this.getTraducciones(adRefList.Table_Name, adRefList.get_ID(), false, true);
                 adRefList.setTraduccionList(traduccionRefList);
 
                 this.cabezalMigracion.getRefListList().add(adRefList);
@@ -1194,7 +1194,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
      * @param recordID
      * @return
      */
-    private List<Traduccion> getTraducciones(String tableName, int recordID) {
+    private List<Traduccion> getTraducciones(String tableName, int recordID, boolean tieneHelp, boolean tieneDescription) {
 
         List<Traduccion> traduccionList = new ArrayList<Traduccion>();
 
@@ -1203,9 +1203,30 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         ResultSet rs = null;
 
         try{
-            sql = " select name, description, help, ad_language " +
-                    " from " + tableName + "_trl " +
-                    " where " + tableName + "_id =" + recordID;
+            if (tieneHelp && tieneDescription){
+                sql = " select name, description, help, ad_language " +
+                        " from " + tableName + "_trl " +
+                        " where " + tableName + "_id =" + recordID;
+
+            }
+
+            if (!tieneHelp && !tieneDescription){
+                sql = " select name, ad_language " +
+                        " from " + tableName + "_trl " +
+                        " where " + tableName + "_id =" + recordID;
+            }
+
+            if (tieneHelp && !tieneDescription){
+                sql = " select name, help, ad_language " +
+                        " from " + tableName + "_trl " +
+                        " where " + tableName + "_id =" + recordID;
+            }
+
+            if (!tieneHelp && tieneDescription){
+                sql = " select name, description, ad_language " +
+                        " from " + tableName + "_trl " +
+                        " where " + tableName + "_id =" + recordID;
+            }
 
         	pstmt = DB.prepareStatement(sql, get_TrxName());
         	rs = pstmt.executeQuery();
@@ -1213,9 +1234,16 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         	while(rs.next()){
         	    Traduccion  traduccion = new Traduccion();
         	    traduccion.setName(rs.getString("name"));
-                traduccion.setDescription(rs.getString("description"));
-                traduccion.setHelp(rs.getString("help"));
+
                 traduccion.setLanguage(rs.getString("ad_language"));
+
+                if (tieneHelp){
+                    traduccion.setHelp(rs.getString("help"));
+                }
+
+                if (tieneDescription){
+                    traduccion.setDescription(rs.getString("description"));
+                }
 
                 traduccionList.add(traduccion);
         	}
@@ -1263,7 +1291,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     adTable.setParentName(rs.getString("parentName"));
                     adTable.setParentID(rs.getInt("parent_ID"));
 
-                    List<Traduccion> traduccionList = this.getTraducciones(adTable.Table_Name, adTable.get_ID());
+                    List<Traduccion> traduccionList = this.getTraducciones(adTable.Table_Name, adTable.get_ID(), false, false);
                     adTable.setTraduccionList(traduccionList);
 
                     this.cabezalMigracion.getTableList().add(adTable);
@@ -1275,7 +1303,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     if (!table.getEntityType().equalsIgnoreCase(X_AD_Table.ENTITYTYPE_Dictionary)){
                         ADColumn adColumn = new ADColumn(getCtx(), column.get_ID(), null);
 
-                        List<Traduccion> traduccionColList = this.getTraducciones(adColumn.Table_Name, adColumn.get_ID());
+                        List<Traduccion> traduccionColList = this.getTraducciones(adColumn.Table_Name, adColumn.get_ID(), false, false);
                         adColumn.setTraduccionList(traduccionColList);
 
                         this.cabezalMigracion.getColumnList().add(adColumn);
@@ -1284,7 +1312,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         if (!column.getEntityType().equalsIgnoreCase(X_AD_Column.ENTITYTYPE_Dictionary)){
                             ADColumn adColumn = new ADColumn(getCtx(), column.get_ID(), null);
 
-                            List<Traduccion> traduccionColList = this.getTraducciones(adColumn.Table_Name, adColumn.get_ID());
+                            List<Traduccion> traduccionColList = this.getTraducciones(adColumn.Table_Name, adColumn.get_ID(), false, false);
                             adColumn.setTraduccionList(traduccionColList);
 
                             this.cabezalMigracion.getColumnList().add(adColumn);
@@ -1330,7 +1358,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 adProcess.setParentName(rs.getString("parentName"));
                 adProcess.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionList = this.getTraducciones(adProcess.Table_Name, adProcess.get_ID());
+                List<Traduccion> traduccionList = this.getTraducciones(adProcess.Table_Name, adProcess.get_ID(), true, true);
                 adProcess.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getProcessList().add(adProcess);
@@ -1373,7 +1401,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 adProcessPara.setParentName(rs.getString("parentName"));
                 adProcessPara.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionParaList = this.getTraducciones(adProcessPara.Table_Name, adProcessPara.get_ID());
+                List<Traduccion> traduccionParaList = this.getTraducciones(adProcessPara.Table_Name, adProcessPara.get_ID(), true, true );
                 adProcessPara.setTraduccionList(traduccionParaList);
 
                 this.cabezalMigracion.getProcessParaList().add(adProcessPara);
@@ -1413,7 +1441,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             while(rs.next()){
                 ADWindow adWindow = new ADWindow(getCtx(), rs.getInt("ad_window_id"), null);
 
-                List<Traduccion> traduccionList = this.getTraducciones(adWindow.Table_Name, adWindow.get_ID());
+                List<Traduccion> traduccionList = this.getTraducciones(adWindow.Table_Name, adWindow.get_ID(), true, true);
                 adWindow.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getWindowList().add(adWindow);
@@ -1424,7 +1452,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 for (int i = 0; i < tabList.length; i++){
                     ADTab adTab = new ADTab(getCtx(), tabList[i].get_ID(), null);
 
-                    List<Traduccion> traduccionTabList = this.getTraducciones(adTab.Table_Name, adTab.get_ID());
+                    List<Traduccion> traduccionTabList = this.getTraducciones(adTab.Table_Name, adTab.get_ID(), true, true);
                     adTab.setTraduccionList(traduccionTabList);
 
                     this.cabezalMigracion.getTabList().add(adTab);
@@ -1434,7 +1462,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     for (int j = 0; j < fieldList.length; j++){
                         ADField adField = new ADField(getCtx(), fieldList[j].get_ID(), null);
 
-                        List<Traduccion> traduccionFieldList = this.getTraducciones(adField.Table_Name, adField.get_ID());
+                        List<Traduccion> traduccionFieldList = this.getTraducciones(adField.Table_Name, adField.get_ID(), true, true);
                         adField.setTraduccionList(traduccionFieldList);
 
                         this.cabezalMigracion.getFieldList().add(adField);
@@ -1452,6 +1480,11 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
     }
 
+    /***
+     * Obtiene información desde archivo de interface y lo carga en ventana.
+     * Xpande. Created by Gabriel Vila on 10/28/19.
+     * @return
+     */
     public String getDataFile() {
 
         String message = null;

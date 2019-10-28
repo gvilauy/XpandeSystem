@@ -14,7 +14,7 @@ public class LeerArchivoMigracion extends SvrProcess {
 
     @Override
     protected void prepare() {
-
+        this.sysMigracion = new MZSysMigracion(getCtx(), this.getRecord_ID(), get_TrxName());
     }
 
     @Override
