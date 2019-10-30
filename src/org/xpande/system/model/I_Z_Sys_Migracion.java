@@ -133,6 +133,19 @@ public interface I_Z_Sys_Migracion
 	  */
 	public boolean isActive();
 
+    /** Column name IsDictionary */
+    public static final String COLUMNNAME_IsDictionary = "IsDictionary";
+
+	/** Set IsDictionary.
+	  * Si es o no un elemento del diccionario
+	  */
+	public void setIsDictionary(boolean IsDictionary);
+
+	/** Get IsDictionary.
+	  * Si es o no un elemento del diccionario
+	  */
+	public boolean isDictionary();
+
     /** Column name MigElemento */
     public static final String COLUMNNAME_MigElemento = "MigElemento";
 
@@ -245,6 +258,32 @@ public interface I_Z_Sys_Migracion
 	  * Botón de Proceso
 	  */
 	public String getProcessButton2();
+
+    /** Column name ProcessButton3 */
+    public static final String COLUMNNAME_ProcessButton3 = "ProcessButton3";
+
+	/** Set ProcessButton3.
+	  * Botón para proceso
+	  */
+	public void setProcessButton3(String ProcessButton3);
+
+	/** Get ProcessButton3.
+	  * Botón para proceso
+	  */
+	public String getProcessButton3();
+
+    /** Column name ProcessButton4 */
+    public static final String COLUMNNAME_ProcessButton4 = "ProcessButton4";
+
+	/** Set ProcessButton4.
+	  * Botón de Proceso
+	  */
+	public void setProcessButton4(String ProcessButton4);
+
+	/** Get ProcessButton4.
+	  * Botón de Proceso
+	  */
+	public String getProcessButton4();
 
     /** Column name StartDate */
     public static final String COLUMNNAME_StartDate = "StartDate";

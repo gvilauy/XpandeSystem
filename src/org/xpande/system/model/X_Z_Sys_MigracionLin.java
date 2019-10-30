@@ -31,7 +31,7 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20190909L;
+	private static final long serialVersionUID = 20191030L;
 
     /** Standard Constructor */
     public X_Z_Sys_MigracionLin (Properties ctx, int Z_Sys_MigracionLin_ID, String trxName)
@@ -211,6 +211,29 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	public String getName () 
 	{
 		return (String)get_Value(COLUMNNAME_Name);
+	}
+
+	/** Set ParentDestino_ID.
+		@param ParentDestino_ID 
+		ID del padre en destino
+	  */
+	public void setParentDestino_ID (int ParentDestino_ID)
+	{
+		if (ParentDestino_ID < 1) 
+			set_Value (COLUMNNAME_ParentDestino_ID, null);
+		else 
+			set_Value (COLUMNNAME_ParentDestino_ID, Integer.valueOf(ParentDestino_ID));
+	}
+
+	/** Get ParentDestino_ID.
+		@return ID del padre en destino
+	  */
+	public int getParentDestino_ID () 
+	{
+		Integer ii = (Integer)get_Value(COLUMNNAME_ParentDestino_ID);
+		if (ii == null)
+			 return 0;
+		return ii.intValue();
 	}
 
 	/** Set Parent.

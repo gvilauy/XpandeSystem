@@ -31,7 +31,7 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20190902L;
+	private static final long serialVersionUID = 20191030L;
 
     /** Standard Constructor */
     public X_Z_Sys_Migracion (Properties ctx, int Z_Sys_Migracion_ID, String trxName)
@@ -41,6 +41,8 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
         {
 			setDateDoc (new Timestamp( System.currentTimeMillis() ));
 // @#Date@
+			setIsDictionary (false);
+// N
 			setMigElemento (false);
 // N
 			setMigProceso (false);
@@ -53,6 +55,7 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 // N
 			setMigVentana (false);
 // N
+			setName (null);
 			setTipoSysMigra (null);
 // EXPORTAR
 			setZ_Sys_Migracion_ID (0);
@@ -139,6 +142,30 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 	public String getFilePathOrName () 
 	{
 		return (String)get_Value(COLUMNNAME_FilePathOrName);
+	}
+
+	/** Set IsDictionary.
+		@param IsDictionary 
+		Si es o no un elemento del diccionario
+	  */
+	public void setIsDictionary (boolean IsDictionary)
+	{
+		set_Value (COLUMNNAME_IsDictionary, Boolean.valueOf(IsDictionary));
+	}
+
+	/** Get IsDictionary.
+		@return Si es o no un elemento del diccionario
+	  */
+	public boolean isDictionary () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsDictionary);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
 	}
 
 	/** Set MigElemento.
@@ -331,6 +358,40 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 	public String getProcessButton2 () 
 	{
 		return (String)get_Value(COLUMNNAME_ProcessButton2);
+	}
+
+	/** Set ProcessButton3.
+		@param ProcessButton3 
+		Botón para proceso
+	  */
+	public void setProcessButton3 (String ProcessButton3)
+	{
+		set_Value (COLUMNNAME_ProcessButton3, ProcessButton3);
+	}
+
+	/** Get ProcessButton3.
+		@return Botón para proceso
+	  */
+	public String getProcessButton3 () 
+	{
+		return (String)get_Value(COLUMNNAME_ProcessButton3);
+	}
+
+	/** Set ProcessButton4.
+		@param ProcessButton4 
+		Botón de Proceso
+	  */
+	public void setProcessButton4 (String ProcessButton4)
+	{
+		set_Value (COLUMNNAME_ProcessButton4, ProcessButton4);
+	}
+
+	/** Get ProcessButton4.
+		@return Botón de Proceso
+	  */
+	public String getProcessButton4 () 
+	{
+		return (String)get_Value(COLUMNNAME_ProcessButton4);
 	}
 
 	/** Set Start Date.

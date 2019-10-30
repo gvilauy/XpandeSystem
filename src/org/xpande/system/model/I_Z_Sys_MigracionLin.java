@@ -170,6 +170,19 @@ public interface I_Z_Sys_MigracionLin
 	  */
 	public String getName();
 
+    /** Column name ParentDestino_ID */
+    public static final String COLUMNNAME_ParentDestino_ID = "ParentDestino_ID";
+
+	/** Set ParentDestino_ID.
+	  * ID del padre en destino
+	  */
+	public void setParentDestino_ID(int ParentDestino_ID);
+
+	/** Get ParentDestino_ID.
+	  * ID del padre en destino
+	  */
+	public int getParentDestino_ID();
+
     /** Column name Parent_ID */
     public static final String COLUMNNAME_Parent_ID = "Parent_ID";
 
