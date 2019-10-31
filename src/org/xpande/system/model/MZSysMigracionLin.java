@@ -17,4 +17,5 @@ public class MZSysMigracionLin extends X_Z_Sys_MigracionLin {
     public MZSysMigracionLin(Properties ctx, ResultSet rs, String trxName) {
         super(ctx, rs, trxName);
     }
+
 }

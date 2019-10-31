@@ -69,6 +69,17 @@ public class ADWindow extends PO implements I_AD_Window, I_Persistent
 	}
 	// Fin Xpande.
 
+	// Xpande. Gabriel Vila. 08/09/2019.
+	// Atributos y metodos necesarios para migración de diccionario.
+	private int sysMigraLinID = -1;
+
+	public int getSysMigraLinID() { return sysMigraLinID; }
+
+	public void setSysMigraLinID(int sysMigraLinID) { this.sysMigraLinID = sysMigraLinID; }
+
+	// Fin Xpande
+
+
 	// Xpande. Gabriel Vila. 09/09/2019.
 	// Lista de traducciones para migración de diccionario.
 	private List<Traduccion> traduccionList = new ArrayList<Traduccion>();

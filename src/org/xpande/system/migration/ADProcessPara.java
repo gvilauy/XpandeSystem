@@ -78,6 +78,7 @@ public class ADProcessPara extends PO implements I_AD_Process_Para, I_Persistent
 	private String parentType = null;
 	private String parentName = null;
 	private int parentID = -1;
+	private int sysMigraLinID = -1;
 
 	public String getParentType() {
 		return parentType;
@@ -102,6 +103,11 @@ public class ADProcessPara extends PO implements I_AD_Process_Para, I_Persistent
 	public void setParentID(int parentID) {
 		this.parentID = parentID;
 	}
+
+	public int getSysMigraLinID() { return sysMigraLinID; }
+
+	public void setSysMigraLinID(int sysMigraLinID) { this.sysMigraLinID = sysMigraLinID; }
+
 	// Fin Xpande
 
 	// Xpande. Gabriel Vila. 09/09/2019.

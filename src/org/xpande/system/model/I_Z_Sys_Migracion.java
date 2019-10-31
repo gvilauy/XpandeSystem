@@ -146,6 +146,19 @@ public interface I_Z_Sys_Migracion
 	  */
 	public boolean isDictionary();
 
+    /** Column name IsTranslated */
+    public static final String COLUMNNAME_IsTranslated = "IsTranslated";
+
+	/** Set Translated.
+	  * This column is translated
+	  */
+	public void setIsTranslated(boolean IsTranslated);
+
+	/** Get Translated.
+	  * This column is translated
+	  */
+	public boolean isTranslated();
+
     /** Column name MigElemento */
     public static final String COLUMNNAME_MigElemento = "MigElemento";
 

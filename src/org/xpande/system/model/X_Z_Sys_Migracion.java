@@ -31,7 +31,7 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20191030L;
+	private static final long serialVersionUID = 20191031L;
 
     /** Standard Constructor */
     public X_Z_Sys_Migracion (Properties ctx, int Z_Sys_Migracion_ID, String trxName)
@@ -42,6 +42,8 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 			setDateDoc (new Timestamp( System.currentTimeMillis() ));
 // @#Date@
 			setIsDictionary (false);
+// N
+			setIsTranslated (false);
 // N
 			setMigElemento (false);
 // N
@@ -159,6 +161,30 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 	public boolean isDictionary () 
 	{
 		Object oo = get_Value(COLUMNNAME_IsDictionary);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Translated.
+		@param IsTranslated 
+		This column is translated
+	  */
+	public void setIsTranslated (boolean IsTranslated)
+	{
+		set_Value (COLUMNNAME_IsTranslated, Boolean.valueOf(IsTranslated));
+	}
+
+	/** Get Translated.
+		@return This column is translated
+	  */
+	public boolean isTranslated () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsTranslated);
 		if (oo != null) 
 		{
 			 if (oo instanceof Boolean) 

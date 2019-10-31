@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -26,6 +27,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
     private String whereClause = "";
     private CabezalMigracion cabezalMigracion = null;
+    private HashMap<Integer, Integer> hashValidaciones = new HashMap<Integer, Integer>();
+    private HashMap<Integer, Integer> hashReferencias = new HashMap<Integer, Integer>();
 
     public MZSysMigracion(Properties ctx, int Z_Sys_Migracion_ID, String trxName) {
         super(ctx, Z_Sys_Migracion_ID, trxName);
@@ -195,7 +198,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
             sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
             sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_ELEMENTO);
-            sysMigracionLin.setName(element.getName());
+            sysMigracionLin.setName(element.getColumnName());
             sysMigracionLin.setAD_Table_ID(I_AD_Element.Table_ID);
             sysMigracionLin.setRecord_ID(element.get_ID());
             sysMigracionLin.setStartDate(element.getUpdated());
@@ -212,7 +215,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             // Verifico si este elemento tiene una referencia, en cuyo caso debo considerarla en el proceso de migracion
             if (element.getAD_Reference_Value_ID() > 0){
                 X_AD_Reference reference = new X_AD_Reference(getCtx(), element.getAD_Reference_Value_ID(), null);
-                this.setReferenciaLin(reference, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_ELEMENTO, element.getName(), element.get_ID());
+                this.setReferenciaLin(reference, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_ELEMENTO, element.getColumnName(), element.get_ID());
             }
 
         }
@@ -246,7 +249,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
             sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
             sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA);
-            sysMigracionLin.setName(column.getName());
+            sysMigracionLin.setName(column.getColumnName());
             sysMigracionLin.setAD_Table_ID(I_AD_Column.Table_ID);
             sysMigracionLin.setRecord_ID(column.get_ID());
             sysMigracionLin.setStartDate(column.getUpdated());
@@ -264,25 +267,25 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
                 // Proceso elemento de la columna
                 X_AD_Element element = (X_AD_Element) column.getAD_Element();
-                this.setElementoLin(element, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA, column.getName(), column.get_ID());
+                this.setElementoLin(element, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA, column.getColumnName(), column.get_ID());
 
                 // Si tengo referencia asociada a esta columna la proceso
                 if (column.getAD_Reference_Value_ID() > 0){
                     X_AD_Reference reference = new X_AD_Reference(getCtx(), column.getAD_Reference_Value_ID(), null);
-                    this.setReferenciaLin(reference, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA, column.getName(), column.get_ID());
+                    this.setReferenciaLin(reference, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA, column.getColumnName(), column.get_ID());
                 }
 
                 // Si tengo validacion asociada a esta columna la proceso
                 if (column.getAD_Val_Rule_ID() > 0){
                     X_AD_Val_Rule valRule = new X_AD_Val_Rule(getCtx(), column.getAD_Val_Rule_ID(), null);
-                    this.setValidacionLin(valRule, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA, column.getName(), column.get_ID());
+                    this.setValidacionLin(valRule, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA, column.getColumnName(), column.get_ID());
                 }
 
                 // Si tengo proceso asociado a esta columna lo considero (no considero la columna DocAction)
                 if (!column.getColumnName().equalsIgnoreCase("DocAction")){
                     if (column.getAD_Process_ID() > 0){
                         X_AD_Process process = new X_AD_Process(getCtx(), column.getAD_Process_ID(), null);
-                        this.setProcesoLin(process, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA, column.getName(), column.get_ID());
+                        this.setProcesoLin(process, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA, column.getColumnName(), column.get_ID());
                     }
                 }
             }
@@ -418,6 +421,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             sysMigracionLin.setVersionNo(valRule.get_ValueAsString("VersionNo"));
             sysMigracionLin.setEntityType(valRule.getEntityType());
             sysMigracionLin.setIsSelected(true);
+            sysMigracionLin.setExisteItem(false);
 
             if (parentType != null) sysMigracionLin.setTipoSysMigraObjFrom(parentType);
             if (parentName != null) sysMigracionLin.setParentName(parentName);
@@ -560,7 +564,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
             sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
             sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REF_LISTA);
-            sysMigracionLin.setName(reference.getName());
+            sysMigracionLin.setName(reference.getValue());
             sysMigracionLin.setAD_Table_ID(I_AD_Ref_List.Table_ID);
             sysMigracionLin.setRecord_ID(reference.get_ID());
             sysMigracionLin.setStartDate(reference.getUpdated());
@@ -906,6 +910,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             sysMigracionLin.setVersionNo(processPara.get_ValueAsString("VersionNo"));
             sysMigracionLin.setEntityType(processPara.getEntityType());
             sysMigracionLin.setIsSelected(true);
+            sysMigracionLin.setExisteItem(false);
 
             if (parentType != null) sysMigracionLin.setTipoSysMigraObjFrom(parentType);
             if (parentName != null) sysMigracionLin.setParentName(parentName);
@@ -1046,6 +1051,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             sysMigracionLin.setVersionNo(reportView.get_ValueAsString("VersionNo"));
             sysMigracionLin.setEntityType(reportView.getEntityType());
             sysMigracionLin.setIsSelected(true);
+            sysMigracionLin.setExisteItem(false);
 
             if (parentType != null) sysMigracionLin.setTipoSysMigraObjFrom(parentType);
             if (parentName != null) sysMigracionLin.setParentName(parentName);
@@ -1095,7 +1101,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
      * Xpande. Created by Gabriel Vila on 8/29/19.
      * @return
      */
-    public String export(){
+    public String exportData(){
 
         String message = null;
 
@@ -1228,7 +1234,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 reportView.setParentName(rs.getString("parentName"));
                 reportView.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionList = this.getTraducciones(reportView.Table_Name, reportView.get_ID(), true, true);
+                List<Traduccion> traduccionList = this.getTraducciones(reportView.Table_Name, reportView.get_ID(), "es_MX");
                 reportView.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getReportViewList().add(reportView);
@@ -1270,7 +1276,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 element.setParentName(rs.getString("parentName"));
                 element.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionList = this.getTraducciones(element.Table_Name, element.get_ID(), true, true);
+                List<Traduccion> traduccionList = this.getTraducciones(element.Table_Name, element.get_ID(), "es_MX");
                 element.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getElementList().add(element);
@@ -1312,7 +1318,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 column.setParentName(rs.getString("parentName"));
                 column.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionList = this.getTraducciones(column.Table_Name, column.get_ID(), false, false);
+                List<Traduccion> traduccionList = this.getTraducciones(column.Table_Name, column.get_ID(), "es_MX");
                 column.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getColumnList().add(column);
@@ -1354,7 +1360,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 tab.setParentName(rs.getString("parentName"));
                 tab.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionList = this.getTraducciones(tab.Table_Name, tab.get_ID(), true, true);
+                List<Traduccion> traduccionList = this.getTraducciones(tab.Table_Name, tab.get_ID(), "es_MX");
                 tab.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getTabList().add(tab);
@@ -1396,7 +1402,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 field.setParentName(rs.getString("parentName"));
                 field.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionList = this.getTraducciones(field.Table_Name, field.get_ID(), true, true);
+                List<Traduccion> traduccionList = this.getTraducciones(field.Table_Name, field.get_ID(), "es_MX");
                 field.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getFieldList().add(field);
@@ -1438,7 +1444,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 reference.setParentName(rs.getString("parentName"));
                 reference.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionList = this.getTraducciones(reference.Table_Name, reference.get_ID(), true, true);
+                List<Traduccion> traduccionList = this.getTraducciones(reference.Table_Name, reference.get_ID(), "es_MX");
                 reference.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getReferenceList().add(reference);
@@ -1481,7 +1487,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 adRefList.setParentName(rs.getString("parentName"));
                 adRefList.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionRefList = this.getTraducciones(adRefList.Table_Name, adRefList.get_ID(), false, true);
+                List<Traduccion> traduccionRefList = this.getTraducciones(adRefList.Table_Name, adRefList.get_ID(), "es_MX");
                 adRefList.setTraduccionList(traduccionRefList);
 
                 this.cabezalMigracion.getRefListList().add(adRefList);
@@ -1542,7 +1548,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
      * @param recordID
      * @return
      */
-    private List<Traduccion> getTraducciones(String tableName, int recordID, boolean tieneHelp, boolean tieneDescription) {
+    private List<Traduccion> getTraducciones(String tableName, int recordID, String adLanguage) {
 
         List<Traduccion> traduccionList = new ArrayList<Traduccion>();
 
@@ -1551,50 +1557,170 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         ResultSet rs = null;
 
         try{
-            if (tieneHelp && tieneDescription){
-                sql = " select name, description, help, ad_language " +
+
+            // Name
+            if ((tableName.equalsIgnoreCase(X_AD_Column.Table_Name)) || (tableName.equalsIgnoreCase(X_AD_FieldGroup.Table_Name))
+                || (tableName.equalsIgnoreCase(X_AD_Table.Table_Name))){
+
+                sql = " select name, ad_language, created, createdby, updated, updatedby, istranslated " +
                         " from " + tableName + "_trl " +
-                        " where " + tableName + "_id =" + recordID;
+                        " where " + tableName + "_id =" + recordID +
+                        " and ad_language ='" + adLanguage + "'";
 
-            }
+                pstmt = DB.prepareStatement(sql, get_TrxName());
+                rs = pstmt.executeQuery();
 
-            if (!tieneHelp && !tieneDescription){
-                sql = " select name, ad_language " +
-                        " from " + tableName + "_trl " +
-                        " where " + tableName + "_id =" + recordID;
-            }
-
-            if (tieneHelp && !tieneDescription){
-                sql = " select name, help, ad_language " +
-                        " from " + tableName + "_trl " +
-                        " where " + tableName + "_id =" + recordID;
-            }
-
-            if (!tieneHelp && tieneDescription){
-                sql = " select name, description, ad_language " +
-                        " from " + tableName + "_trl " +
-                        " where " + tableName + "_id =" + recordID;
-            }
-
-        	pstmt = DB.prepareStatement(sql, get_TrxName());
-        	rs = pstmt.executeQuery();
-
-        	while(rs.next()){
-        	    Traduccion  traduccion = new Traduccion();
-        	    traduccion.setName(rs.getString("name"));
-
-                traduccion.setLanguage(rs.getString("ad_language"));
-
-                if (tieneHelp){
-                    traduccion.setHelp(rs.getString("help"));
+                while(rs.next()){
+                    Traduccion  traduccion = new Traduccion();
+                    traduccion.setName(rs.getString("name"));
+                    traduccion.setCreated(rs.getTimestamp("created"));
+                    traduccion.setUpdated(rs.getTimestamp("updated"));
+                    traduccion.setCreatedBy(rs.getInt("createdby"));
+                    traduccion.setUpdatedBy(rs.getInt("updatedby"));
+                    traduccion.setLanguage(rs.getString("ad_language"));
+                    traduccion.setIsTranslated(rs.getString("istranslated"));
+                    traduccionList.add(traduccion);
                 }
+            }
 
-                if (tieneDescription){
+            // Name, Description
+            if (tableName.equalsIgnoreCase(X_AD_Ref_List.Table_Name)){
+
+                sql = " select name, description, ad_language, created, createdby, updated, updatedby, istranslated " +
+                        " from " + tableName + "_trl " +
+                        " where " + tableName + "_id =" + recordID +
+                        " and ad_language ='" + adLanguage + "'";
+
+                pstmt = DB.prepareStatement(sql, get_TrxName());
+                rs = pstmt.executeQuery();
+
+                while(rs.next()){
+                    Traduccion  traduccion = new Traduccion();
+                    traduccion.setName(rs.getString("name"));
                     traduccion.setDescription(rs.getString("description"));
+                    traduccion.setCreated(rs.getTimestamp("created"));
+                    traduccion.setUpdated(rs.getTimestamp("updated"));
+                    traduccion.setCreatedBy(rs.getInt("createdby"));
+                    traduccion.setUpdatedBy(rs.getInt("updatedby"));
+                    traduccion.setLanguage(rs.getString("ad_language"));
+                    traduccion.setIsTranslated(rs.getString("istranslated"));
+                    traduccionList.add(traduccion);
                 }
+            }
 
-                traduccionList.add(traduccion);
-        	}
+            // Name, Description, Help
+            if ((tableName.equalsIgnoreCase(X_AD_Window.Table_Name)) || (tableName.equalsIgnoreCase(X_AD_Field.Table_Name))
+                    || (tableName.equalsIgnoreCase(X_AD_Process.Table_Name)) || (tableName.equalsIgnoreCase(X_AD_Process_Para.Table_Name))
+                    || (tableName.equalsIgnoreCase(X_AD_Reference.Table_Name))){
+
+                sql = " select name, description, help, ad_language, created, createdby, updated, updatedby, istranslated " +
+                        " from " + tableName + "_trl " +
+                        " where " + tableName + "_id =" + recordID +
+                        " and ad_language ='" + adLanguage + "'";
+
+                pstmt = DB.prepareStatement(sql, get_TrxName());
+                rs = pstmt.executeQuery();
+
+                while(rs.next()){
+                    Traduccion  traduccion = new Traduccion();
+                    traduccion.setName(rs.getString("name"));
+                    traduccion.setDescription(rs.getString("description"));
+                    traduccion.setHelp(rs.getString("help"));
+                    traduccion.setCreated(rs.getTimestamp("created"));
+                    traduccion.setUpdated(rs.getTimestamp("updated"));
+                    traduccion.setCreatedBy(rs.getInt("createdby"));
+                    traduccion.setUpdatedBy(rs.getInt("updatedby"));
+                    traduccion.setLanguage(rs.getString("ad_language"));
+                    traduccion.setIsTranslated(rs.getString("istranslated"));
+                    traduccionList.add(traduccion);
+                }
+            }
+
+            // Name, PrintName, Description, Help, PoNAme, PoDescription, PoHelp, PoPrintName
+            if (tableName.equalsIgnoreCase(X_AD_Element.Table_Name)){
+
+                sql = " select name, description, help, printname, po_name, po_description, po_help, po_printname, " +
+                        " ad_language, created, createdby, updated, updatedby, istranslated " +
+                        " from " + tableName + "_trl " +
+                        " where " + tableName + "_id =" + recordID +
+                        " and ad_language ='" + adLanguage + "'";
+
+                pstmt = DB.prepareStatement(sql, get_TrxName());
+                rs = pstmt.executeQuery();
+
+                while(rs.next()){
+                    Traduccion  traduccion = new Traduccion();
+                    traduccion.setName(rs.getString("name"));
+                    traduccion.setDescription(rs.getString("description"));
+                    traduccion.setHelp(rs.getString("help"));
+                    traduccion.setPrintName(rs.getString("printname"));
+                    traduccion.setPoName(rs.getString("po_name"));
+                    traduccion.setPoDescription(rs.getString("po_description"));
+                    traduccion.setPoHelp(rs.getString("po_help"));
+                    traduccion.setPoPrintName(rs.getString("po_printname"));
+                    traduccion.setCreated(rs.getTimestamp("created"));
+                    traduccion.setUpdated(rs.getTimestamp("updated"));
+                    traduccion.setCreatedBy(rs.getInt("createdby"));
+                    traduccion.setUpdatedBy(rs.getInt("updatedby"));
+                    traduccion.setLanguage(rs.getString("ad_language"));
+                    traduccion.setIsTranslated(rs.getString("istranslated"));
+                    traduccionList.add(traduccion);
+                }
+            }
+
+            // Name, Description, PrintName
+            if (tableName.equalsIgnoreCase(X_AD_ReportView.Table_Name)){
+
+                sql = " select name, description, printname, ad_language, created, createdby, updated, updatedby, istranslated " +
+                        " from " + tableName + "_trl " +
+                        " where " + tableName + "_id =" + recordID +
+                        " and ad_language ='" + adLanguage + "'";
+
+                pstmt = DB.prepareStatement(sql, get_TrxName());
+                rs = pstmt.executeQuery();
+
+                while(rs.next()){
+                    Traduccion  traduccion = new Traduccion();
+                    traduccion.setName(rs.getString("name"));
+                    traduccion.setDescription(rs.getString("description"));
+                    traduccion.setPrintName(rs.getString("printname"));
+                    traduccion.setCreated(rs.getTimestamp("created"));
+                    traduccion.setUpdated(rs.getTimestamp("updated"));
+                    traduccion.setCreatedBy(rs.getInt("createdby"));
+                    traduccion.setUpdatedBy(rs.getInt("updatedby"));
+                    traduccion.setLanguage(rs.getString("ad_language"));
+                    traduccion.setIsTranslated(rs.getString("istranslated"));
+                    traduccionList.add(traduccion);
+                }
+            }
+
+            // Name, Description, Help, CommitWarning
+            if (tableName.equalsIgnoreCase(X_AD_Tab.Table_Name)){
+
+                sql = " select name, description, help, commitwarning, ad_language, created, createdby, updated, updatedby, istranslated " +
+                        " from " + tableName + "_trl " +
+                        " where " + tableName + "_id =" + recordID +
+                        " and ad_language ='" + adLanguage + "'";
+
+                pstmt = DB.prepareStatement(sql, get_TrxName());
+                rs = pstmt.executeQuery();
+
+                while(rs.next()){
+                    Traduccion  traduccion = new Traduccion();
+                    traduccion.setName(rs.getString("name"));
+                    traduccion.setDescription(rs.getString("description"));
+                    traduccion.setHelp(rs.getString("help"));
+                    traduccion.setCommitWarning(rs.getString("commitwarning"));
+                    traduccion.setCreated(rs.getTimestamp("created"));
+                    traduccion.setUpdated(rs.getTimestamp("updated"));
+                    traduccion.setCreatedBy(rs.getInt("createdby"));
+                    traduccion.setUpdatedBy(rs.getInt("updatedby"));
+                    traduccion.setLanguage(rs.getString("ad_language"));
+                    traduccion.setIsTranslated(rs.getString("istranslated"));
+                    traduccionList.add(traduccion);
+                }
+            }
+
         }
         catch (Exception e){
             throw new AdempiereException(e);
@@ -1605,6 +1731,109 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         }
 
         return traduccionList;
+    }
+
+    /***
+     * Importa traducciones para determinado registro-tabla.
+     * Xpande. Created by Gabriel Vila on 10/31/19.
+     * @param tableName
+     * @param recordID
+     * @return
+     */
+    private void importTraducciones(String tableName, int recordID, List<Traduccion> traduccionList) {
+
+        String action = "";
+
+        try{
+            // Para cada traducción recibida
+            for (Traduccion traduccion: traduccionList){
+
+                // Elimino anterior
+                action = " delete from " + tableName + "_trl " +
+                        " where " + tableName + "_id =" + recordID +
+                        " and ad_language ='" + traduccion.getLanguage() + "'";
+                DB.executeUpdateEx(action, get_TrxName());
+
+                // Cargo nueva segun tabla
+                action = " insert into " + tableName + "_trl (" + tableName + "_id, ad_client_id, ad_org_id, isactive, created, createdby, updated, updatedby, istranslated, ad_language, ";
+
+                // Name
+                if ((tableName.equalsIgnoreCase(X_AD_Column.Table_Name)) || (tableName.equalsIgnoreCase(X_AD_FieldGroup.Table_Name))
+                        || (tableName.equalsIgnoreCase(X_AD_Table.Table_Name))){
+
+                    action += "name) " +
+                            " VALUES (" + recordID + ", 0, 0,'Y','" + traduccion.getCreated() + "', " + traduccion.getCreatedBy() + ", '" + traduccion.getUpdated() + "', " +
+                            traduccion.getUpdatedBy() + ", '" + traduccion.getIsTranslated() + "', '" + traduccion.getLanguage() + "', '" +
+                            traduccion.getName() + "') ";
+                }
+
+                // Name, Description
+                if (tableName.equalsIgnoreCase(X_AD_Ref_List.Table_Name)){
+
+                    action += "name, description) " +
+                            " VALUES (" + recordID + ", 0,0,'Y','" + traduccion.getCreated() + "', " + traduccion.getCreatedBy() + ", '" + traduccion.getUpdated() + "', " +
+                            traduccion.getUpdatedBy() + ", '" + traduccion.getIsTranslated() + "', '" + traduccion.getLanguage() + "', '" +
+                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null" : "', '" + traduccion.getDescription() + "'") + ") ";
+
+                }
+
+                // Name, Description, Help
+                if ((tableName.equalsIgnoreCase(X_AD_Window.Table_Name)) || (tableName.equalsIgnoreCase(X_AD_Field.Table_Name))
+                        || (tableName.equalsIgnoreCase(X_AD_Process.Table_Name)) || (tableName.equalsIgnoreCase(X_AD_Process_Para.Table_Name))
+                        || (tableName.equalsIgnoreCase(X_AD_Reference.Table_Name))){
+
+                    action += "name, description, help) " +
+                            " VALUES (" + recordID + ", 0,0,'Y','" + traduccion.getCreated() + "', " + traduccion.getCreatedBy() + ", '" + traduccion.getUpdated() + "', " +
+                            traduccion.getUpdatedBy() + ", '" + traduccion.getIsTranslated() + "', '" + traduccion.getLanguage() + "', '" +
+                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null, " : "', '" + traduccion.getDescription() + "'") +
+                            ((traduccion.getHelp() == null) ? ", null" : ", '" + traduccion.getHelp() + "'") + ") ";
+                }
+
+                // Name, PrintName, Description, Help, PoNAme, PoDescription, PoHelp, PoPrintName
+                if (tableName.equalsIgnoreCase(X_AD_Element.Table_Name)){
+
+                    action += "name, description, help, printname, po_name, po_description, po_help, po_printname) " +
+                            " VALUES (" + recordID + ", 0,0,'Y','" + traduccion.getCreated() + "', " + traduccion.getCreatedBy() + ", '" + traduccion.getUpdated() + "', " +
+                            traduccion.getUpdatedBy() + ", '" + traduccion.getIsTranslated() + "', '" + traduccion.getLanguage() + "', '" +
+                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null, " : "', '" + traduccion.getDescription() + "'") +
+                            ((traduccion.getHelp() == null) ? ", null, " : ", '" + traduccion.getHelp() + "'") +
+                            ((traduccion.getPrintName() == null) ? ", null, " : ", '" + traduccion.getPrintName() + "'") +
+                            ((traduccion.getPoName() == null) ? ", null, " : ", '" + traduccion.getPoName() + "'") +
+                            ((traduccion.getPoDescription() == null) ? ", null, " : ", '" + traduccion.getPoDescription() + "'") +
+                            ((traduccion.getPoHelp() == null) ? ", null, " : ", '" + traduccion.getPoHelp() + "'") +
+                            ((traduccion.getPoPrintName() == null) ? ", null, " : ", '" + traduccion.getPoPrintName() + "'") + ") ";
+                }
+
+                // Name, Description, PrintName
+                if (tableName.equalsIgnoreCase(X_AD_ReportView.Table_Name)){
+
+                    action += "name, description, printname) " +
+                            " VALUES (" + recordID + ", 0, 0,'Y','" + traduccion.getCreated() + "', " + traduccion.getCreatedBy() + ", '" + traduccion.getUpdated() + "', " +
+                            traduccion.getUpdatedBy() + ", '" + traduccion.getIsTranslated() + "', '" + traduccion.getLanguage() + "', '" +
+                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null, " : "', '" + traduccion.getDescription() + "'") +
+                            ((traduccion.getPrintName() == null) ? ", null" : ", '" + traduccion.getPrintName() + "'") + ") ";
+
+                }
+
+                // Name, Description, Help, CommitWarning
+                if (tableName.equalsIgnoreCase(X_AD_Tab.Table_Name)){
+
+                    action += "name, description, help, commitwarning) " +
+                            " VALUES (" + recordID + ", 0, 0,'Y','" + traduccion.getCreated() + "', " + traduccion.getCreatedBy() + ", '" + traduccion.getUpdated() + "', " +
+                            traduccion.getUpdatedBy() + ", '" + traduccion.getIsTranslated() + "', '" + traduccion.getLanguage() + "', '" +
+                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null, " : "', '" + traduccion.getDescription() + "'") +
+                            ((traduccion.getHelp() == null) ? ", null, " : ", '" + traduccion.getHelp() + "'") +
+                            ((traduccion.getCommitWarning() == null) ? ", null, " : ", '" + traduccion.getCommitWarning() + "'") + ") ";
+
+                }
+
+                DB.executeUpdateEx(action, get_TrxName());
+
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
     }
 
     /***
@@ -1639,7 +1868,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     adTable.setParentName(rs.getString("parentName"));
                     adTable.setParentID(rs.getInt("parent_ID"));
 
-                    List<Traduccion> traduccionList = this.getTraducciones(adTable.Table_Name, adTable.get_ID(), false, false);
+                    List<Traduccion> traduccionList = this.getTraducciones(adTable.Table_Name, adTable.get_ID(), "es_MX");
                     adTable.setTraduccionList(traduccionList);
 
                     this.cabezalMigracion.getTableList().add(adTable);
@@ -1656,7 +1885,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         adColumn.setParentName(table.getName());
                         adColumn.setParentID(table.get_ID());
 
-                        List<Traduccion> traduccionColList = this.getTraducciones(adColumn.Table_Name, adColumn.get_ID(), false, false);
+                        List<Traduccion> traduccionColList = this.getTraducciones(adColumn.Table_Name, adColumn.get_ID(), "es_MX");
                         adColumn.setTraduccionList(traduccionColList);
 
                         this.cabezalMigracion.getColumnList().add(adColumn);
@@ -1702,7 +1931,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 adProcess.setParentName(rs.getString("parentName"));
                 adProcess.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionList = this.getTraducciones(adProcess.Table_Name, adProcess.get_ID(), true, true);
+                List<Traduccion> traduccionList = this.getTraducciones(adProcess.Table_Name, adProcess.get_ID(), "es_MX");
                 adProcess.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getProcessList().add(adProcess);
@@ -1745,7 +1974,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 adProcessPara.setParentName(rs.getString("parentName"));
                 adProcessPara.setParentID(rs.getInt("parent_ID"));
 
-                List<Traduccion> traduccionParaList = this.getTraducciones(adProcessPara.Table_Name, adProcessPara.get_ID(), true, true );
+                List<Traduccion> traduccionParaList = this.getTraducciones(adProcessPara.Table_Name, adProcessPara.get_ID(), "es_MX");
                 adProcessPara.setTraduccionList(traduccionParaList);
 
                 this.cabezalMigracion.getProcessParaList().add(adProcessPara);
@@ -1785,7 +2014,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             while(rs.next()){
                 ADWindow adWindow = new ADWindow(getCtx(), rs.getInt("ad_window_id"), null);
 
-                List<Traduccion> traduccionList = this.getTraducciones(adWindow.Table_Name, adWindow.get_ID(), true, true);
+                List<Traduccion> traduccionList = this.getTraducciones(adWindow.Table_Name, adWindow.get_ID(), "es_MX");
                 adWindow.setTraduccionList(traduccionList);
 
                 this.cabezalMigracion.getWindowList().add(adWindow);
@@ -1796,7 +2025,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 for (int i = 0; i < tabList.length; i++){
                     ADTab adTab = new ADTab(getCtx(), tabList[i].get_ID(), null);
 
-                    List<Traduccion> traduccionTabList = this.getTraducciones(adTab.Table_Name, adTab.get_ID(), true, true);
+                    List<Traduccion> traduccionTabList = this.getTraducciones(adTab.Table_Name, adTab.get_ID(), "es_MX");
                     adTab.setTraduccionList(traduccionTabList);
 
                     this.cabezalMigracion.getTabList().add(adTab);
@@ -1806,7 +2035,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     for (int j = 0; j < fieldList.length; j++){
                         ADField adField = new ADField(getCtx(), fieldList[j].get_ID(), null);
 
-                        List<Traduccion> traduccionFieldList = this.getTraducciones(adField.Table_Name, adField.get_ID(), true, true);
+                        List<Traduccion> traduccionFieldList = this.getTraducciones(adField.Table_Name, adField.get_ID(), "es_MX");
                         adField.setTraduccionList(traduccionFieldList);
 
                         this.cabezalMigracion.getFieldList().add(adField);
@@ -1838,6 +2067,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             if ((this.getFilePathOrName() == null) || (this.getFilePathOrName().trim().equalsIgnoreCase(""))){
                 return "Debe indicar archivo a procesar.";
             }
+
+            // Elimino información anterior
+            String action = " delete from z_sys_migracionlin where z_sys_migracion_id =" + this.get_ID();
+            DB.executeUpdateEx(action, get_TrxName());
 
             this.cabezalMigracion = null;
 
@@ -1941,8 +2174,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             this.setReferenciasDestino();
             this.setElementosDestino();
             this.setProcesosDestino();
-
-
+            this.setTablasDestino();
+            this.setColumnasDestino();
+            this.setRefListaDestino();
+            this.setRefTablaDestino();
+            this.setProcesosParamsDestino();
+            this.setVistasInformesDestino();
+            this.setVentanasDestino();
+            this.setTabsDestino();
+            this.setFieldsDestino();
         }
         catch (Exception e){
             throw new AdempiereException(e);
@@ -1966,7 +2206,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
                 sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
                 sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_ELEMENTO);
-                sysMigracionLin.setName(adElement.getName());
+                sysMigracionLin.setName(adElement.getColumnName());
                 sysMigracionLin.setAD_Table_ID(I_AD_Element.Table_ID);
                 sysMigracionLin.setRecord_ID(adElement.get_ID());
                 sysMigracionLin.setStartDate(adElement.getUpdated());
@@ -1980,6 +2220,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (adElement.getParentID() > 0) sysMigracionLin.setParent_ID(adElement.getParentID());
 
                 sysMigracionLin.saveEx();
+
+                adElement.setSysMigraLinID(sysMigracionLin.get_ID());
+
             }
         }
         catch (Exception e){
@@ -2018,6 +2261,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (adProcess.getParentID() > 0) sysMigracionLin.setParent_ID(adProcess.getParentID());
 
                 sysMigracionLin.saveEx();
+
+                adProcess.setSysMigraLinID(sysMigracionLin.get_ID());
             }
         }
         catch (Exception e){
@@ -2049,23 +2294,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 sysMigracionLin.setVersionNo(adProcessPara.get_ValueAsString("VersionNo"));
                 sysMigracionLin.setEntityType(adProcessPara.getEntityType());
                 sysMigracionLin.setIsSelected(true);
+                sysMigracionLin.setExisteItem(false);
 
                 if (adProcessPara.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adProcessPara.getParentType());
                 if (adProcessPara.getParentName() != null) sysMigracionLin.setParentName(adProcessPara.getParentName());
                 if (adProcessPara.getParentID() > 0) sysMigracionLin.setParent_ID(adProcessPara.getParentID());
 
-                // Verifico si existe item con el mismo nombre en la base destino
-                int[] itemIDs = PO.getAllIDs(X_AD_Process_Para.Table_Name, " AD_Process_ID =" + adProcessPara.getAD_Process_ID() + " and Name ='" + adProcessPara.getName() + "'", null);
-                if (itemIDs.length > 0){
-                    MProcessPara processParaDB = new MProcessPara(getCtx(), itemIDs[0], null);
-                    sysMigracionLin.setExisteItem(true);
-                    sysMigracionLin.setDestino_ID(processParaDB.get_ID());
-                }
-                else {
-                    sysMigracionLin.setExisteItem(false);
-                }
-
                 sysMigracionLin.saveEx();
+
+                adProcessPara.setSysMigraLinID(sysMigracionLin.get_ID());
             }
         }
         catch (Exception e){
@@ -2097,31 +2334,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 sysMigracionLin.setVersionNo(adTab.get_ValueAsString("VersionNo"));
                 sysMigracionLin.setEntityType(adTab.getEntityType());
                 sysMigracionLin.setIsSelected(true);
+                sysMigracionLin.setExisteItem(false);
 
                 if (adTab.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adTab.getParentType());
                 if (adTab.getParentName() != null) sysMigracionLin.setParentName(adTab.getParentName());
                 if (adTab.getParentID() > 0) sysMigracionLin.setParent_ID(adTab.getParentID());
 
-                // Verifico si existe item con el mismo nombre en la base destino
-                int[] itemIDs = PO.getAllIDs(X_AD_Tab.Table_Name, " AD_Window_ID =" + adTab.getAD_Window_ID() + " and Name ='" + adTab.getName() + "'", null);
-                if (itemIDs.length > 0){
-                    MTab tabDB = new MTab(getCtx(), itemIDs[0], null);
-                    sysMigracionLin.setExisteItem(true);
-                    sysMigracionLin.setDestino_ID(tabDB.get_ID());
-
-                    // Actualizo ID destino padre para hijos de esta pestaña
-                    String action = " update z_sys_migracionlin set ParentDestino_ID =" + tabDB.get_ID() +
-                            " where z_sys_migracion_id =" + this.get_ID() +
-                            " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_PESTANIA + "' " +
-                            " and parent_id =" + adTab.get_ID();
-                    DB.executeUpdateEx(action, get_TrxName());
-
-                }
-                else {
-                    sysMigracionLin.setExisteItem(false);
-                }
-
                 sysMigracionLin.saveEx();
+
+                adTab.setSysMigraLinID(sysMigracionLin.get_ID());
             }
         }
         catch (Exception e){
@@ -2153,31 +2374,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 sysMigracionLin.setVersionNo(adField.get_ValueAsString("VersionNo"));
                 sysMigracionLin.setEntityType(adField.getEntityType());
                 sysMigracionLin.setIsSelected(true);
+                sysMigracionLin.setExisteItem(false);
 
                 if (adField.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adField.getParentType());
                 if (adField.getParentName() != null) sysMigracionLin.setParentName(adField.getParentName());
                 if (adField.getParentID() > 0) sysMigracionLin.setParent_ID(adField.getParentID());
 
-                // Verifico si existe item con el mismo nombre en la base destino
-                int[] itemIDs = PO.getAllIDs(X_AD_Field.Table_Name, " AD_Tab_ID =" + adField.getAD_Tab_ID() + " and Name ='" + adField.getName() + "'", null);
-                if (itemIDs.length > 0){
-                    MField fieldDB = new MField(getCtx(), itemIDs[0], null);
-                    sysMigracionLin.setExisteItem(true);
-                    sysMigracionLin.setDestino_ID(fieldDB.get_ID());
-
-                    // Actualizo ID destino padre para hijos de este field
-                    String action = " update z_sys_migracionlin set ParentDestino_ID =" + fieldDB.get_ID() +
-                            " where z_sys_migracion_id =" + this.get_ID() +
-                            " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_FIELD + "' " +
-                            " and parent_id =" + adField.get_ID();
-                    DB.executeUpdateEx(action, get_TrxName());
-
-                }
-                else {
-                    sysMigracionLin.setExisteItem(false);
-                }
-
                 sysMigracionLin.saveEx();
+
+                adField.setSysMigraLinID(sysMigracionLin.get_ID());
             }
         }
         catch (Exception e){
@@ -2216,6 +2421,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (adReference.getParentID() > 0) sysMigracionLin.setParent_ID(adReference.getParentID());
 
                 sysMigracionLin.saveEx();
+
+                adReference.setSysMigraLinID(sysMigracionLin.get_ID());
             }
         }
         catch (Exception e){
@@ -2247,23 +2454,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 sysMigracionLin.setVersionNo(adReportView.get_ValueAsString("VersionNo"));
                 sysMigracionLin.setEntityType(adReportView.getEntityType());
                 sysMigracionLin.setIsSelected(true);
+                sysMigracionLin.setExisteItem(false);
 
                 if (adReportView.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adReportView.getParentType());
                 if (adReportView.getParentName() != null) sysMigracionLin.setParentName(adReportView.getParentName());
                 if (adReportView.getParentID() > 0) sysMigracionLin.setParent_ID(adReportView.getParentID());
 
-                // Verifico si existe item con el mismo nombre en la base destino
-                int[] itemIDs = PO.getAllIDs(X_AD_ReportView.Table_Name, " Name ='" + adReportView.getName() + "'", null);
-                if (itemIDs.length > 0){
-                    X_AD_ReportView reportViewDB = new X_AD_ReportView(getCtx(), itemIDs[0], null);
-                    sysMigracionLin.setExisteItem(true);
-                    sysMigracionLin.setDestino_ID(reportViewDB.get_ID());
-                }
-                else {
-                    sysMigracionLin.setExisteItem(false);
-                }
-
                 sysMigracionLin.saveEx();
+
+                adReportView.setSysMigraLinID(sysMigracionLin.get_ID());
             }
         }
         catch (Exception e){
@@ -2288,30 +2487,22 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
                 sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
                 sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REF_LISTA);
-                sysMigracionLin.setName(adRefList.getName());
+                sysMigracionLin.setName(adRefList.getValue());
                 sysMigracionLin.setAD_Table_ID(I_AD_Ref_List.Table_ID);
                 sysMigracionLin.setRecord_ID(adRefList.get_ID());
                 sysMigracionLin.setStartDate(adRefList.getUpdated());
                 sysMigracionLin.setVersionNo(adRefList.get_ValueAsString("VersionNo"));
                 sysMigracionLin.setEntityType(adRefList.getEntityType());
                 sysMigracionLin.setIsSelected(true);
+                sysMigracionLin.setExisteItem(false);
 
                 if (adRefList.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adRefList.getParentType());
                 if (adRefList.getParentName() != null) sysMigracionLin.setParentName(adRefList.getParentName());
                 if (adRefList.getParentID() > 0) sysMigracionLin.setParent_ID(adRefList.getParentID());
 
-                // Verifico si existe item con el mismo nombre en la base destino
-                int[] itemIDs = PO.getAllIDs(X_AD_Ref_List.Table_Name, " Name ='" + adRefList.getName() + "'", null);
-                if (itemIDs.length > 0){
-                    X_AD_Ref_List referenceDB = new X_AD_Ref_List(getCtx(), itemIDs[0], null);
-                    sysMigracionLin.setExisteItem(true);
-                    sysMigracionLin.setDestino_ID(referenceDB.get_ID());
-                }
-                else {
-                    sysMigracionLin.setExisteItem(false);
-                }
-
                 sysMigracionLin.saveEx();
+
+                adRefList.setSysMigraLinID(sysMigracionLin.get_ID());
             }
         }
         catch (Exception e){
@@ -2343,24 +2534,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 sysMigracionLin.setVersionNo(adRefTable.get_ValueAsString("VersionNo"));
                 sysMigracionLin.setEntityType(adRefTable.getEntityType());
                 sysMigracionLin.setIsSelected(true);
+                sysMigracionLin.setExisteItem(false);
 
                 if (adRefTable.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adRefTable.getParentType());
                 if (adRefTable.getParentName() != null) sysMigracionLin.setParentName(adRefTable.getParentName());
                 if (adRefTable.getParentID() > 0) sysMigracionLin.setParent_ID(adRefTable.getParentID());
 
-                // Verifico si existe item con el mismo nombre en la base destino
-                // La tabla de AD_Ref_Table no tiene ID propio, por lo tanto lo busco con una sql
-                String sql = " select ad_table_id from ad_ref_table where ad_reference_id =" + adRefTable.getAD_Reference_ID() +
-                        " and ad_table_id =" + adRefTable.getAD_Table_ID();
-                int idAux = DB.getSQLValueEx(get_TrxName(), sql);
-                if (idAux > 0){
-                    sysMigracionLin.setExisteItem(true);
-                }
-                else {
-                    sysMigracionLin.setExisteItem(false);
-                }
-
                 sysMigracionLin.saveEx();
+
+                adRefTable.setSysMigraLinID(sysMigracionLin.get_ID());
             }
         }
         catch (Exception e){
@@ -2392,31 +2574,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 sysMigracionLin.setVersionNo(adTable.get_ValueAsString("VersionNo"));
                 sysMigracionLin.setEntityType(adTable.getEntityType());
                 sysMigracionLin.setIsSelected(true);
+                sysMigracionLin.setExisteItem(false);
 
                 if (adTable.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adTable.getParentType());
                 if (adTable.getParentName() != null) sysMigracionLin.setParentName(adTable.getParentName());
                 if (adTable.getParentID() > 0) sysMigracionLin.setParent_ID(adTable.getParentID());
 
-                // Verifico si existe item con el mismo nombre en la base destino
-                int[] itemIDs = PO.getAllIDs(X_AD_Table.Table_Name, " Name ='" + adTable.getName() + "'", null);
-                if (itemIDs.length > 0){
-                    X_AD_Table tableDB = new X_AD_Table(getCtx(), itemIDs[0], null);
-                    sysMigracionLin.setExisteItem(true);
-                    sysMigracionLin.setDestino_ID(tableDB.get_ID());
-
-                    // Actualizo ID destino padre para hijos de esta tabla
-                    String action = " update z_sys_migracionlin set ParentDestino_ID =" + tableDB.get_ID() +
-                            " where z_sys_migracion_id =" + this.get_ID() +
-                            " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA + "' " +
-                            " and parent_id =" + adTable.get_ID();
-                    DB.executeUpdateEx(action, get_TrxName());
-
-                }
-                else {
-                    sysMigracionLin.setExisteItem(false);
-                }
-
                 sysMigracionLin.saveEx();
+
+                adTable.setSysMigraLinID(sysMigracionLin.get_ID());
             }
         }
         catch (Exception e){
@@ -2441,36 +2607,18 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
                 sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
                 sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA);
-                sysMigracionLin.setName(adColumn.getName());
+                sysMigracionLin.setName(adColumn.getColumnName());
                 sysMigracionLin.setAD_Table_ID(I_AD_Column.Table_ID);
                 sysMigracionLin.setRecord_ID(adColumn.get_ID());
                 sysMigracionLin.setStartDate(adColumn.getUpdated());
                 sysMigracionLin.setVersionNo(adColumn.get_ValueAsString("VersionNo"));
                 sysMigracionLin.setEntityType(adColumn.getEntityType());
                 sysMigracionLin.setIsSelected(true);
+                sysMigracionLin.setExisteItem(false);
 
                 if (adColumn.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adColumn.getParentType());
                 if (adColumn.getParentName() != null) sysMigracionLin.setParentName(adColumn.getParentName());
                 if (adColumn.getParentID() > 0) sysMigracionLin.setParent_ID(adColumn.getParentID());
-
-                // Verifico si existe item con el mismo nombre en la base destino
-                int[] itemIDs = PO.getAllIDs(X_AD_Column.Table_Name, " Name ='" + adColumn.getName() + "'", null);
-                if (itemIDs.length > 0){
-                    X_AD_Column columnDB = new X_AD_Column(getCtx(), itemIDs[0], null);
-                    sysMigracionLin.setExisteItem(true);
-                    sysMigracionLin.setDestino_ID(columnDB.get_ID());
-
-                    // Actualizo ID destino padre para hijos de esta columna
-                    String action = " update z_sys_migracionlin set ParentDestino_ID =" + columnDB.get_ID() +
-                            " where z_sys_migracion_id =" + this.get_ID() +
-                            " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA + "' " +
-                            " and parent_id =" + adColumn.get_ID();
-                    DB.executeUpdateEx(action, get_TrxName());
-
-                }
-                else {
-                    sysMigracionLin.setExisteItem(false);
-                }
 
                 sysMigracionLin.saveEx();
             }
@@ -2511,6 +2659,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (adValRule.getParentID() > 0) sysMigracionLin.setParent_ID(adValRule.getParentID());
 
                 sysMigracionLin.saveEx();
+
+                adValRule.setSysMigraLinID(sysMigracionLin.get_ID());
             }
         }
         catch (Exception e){
@@ -2550,6 +2700,107 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
     }
 
     /***
+     * Verifico existencia de ventanas en base destino.
+     * Xpande. Created by Gabriel Vila on 10/30/19.
+     * @return
+     */
+    private void setVentanasDestino(){
+
+        try{
+
+            List<MZSysMigracionLin> sysMigracionLinList = this.getLinesByTipoMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_VENTANA);
+
+            for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
+
+                // Verifico si existe item en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_Window.Table_Name, " Name ='" + sysMigracionLin.getName() + "'", null);
+                if (itemIDs.length > 0){
+                    X_AD_Window windowDB = new X_AD_Window(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(windowDB.get_ID());
+                    sysMigracionLin.saveEx();
+
+                    // Actualizo ID destino padre para hijos de este elemento
+                    String action = " update z_sys_migracionlin set ParentDestino_ID =" + windowDB.get_ID() +
+                            " where z_sys_migracion_id =" + this.get_ID() +
+                            " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_VENTANA + "' " +
+                            " and parent_id =" + sysMigracionLin.getRecord_ID();
+                    DB.executeUpdateEx(action, get_TrxName());
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Verifico existencia de vistas de informe en base destino.
+     * Xpande. Created by Gabriel Vila on 10/30/19.
+     * @return
+     */
+    private void setVistasInformesDestino(){
+
+        try{
+
+            List<MZSysMigracionLin> sysMigracionLinList = this.getLinesByTipoMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REPORTVIEW);
+
+            for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
+
+                // Verifico si existe item en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_ReportView.Table_Name, " Name ='" + sysMigracionLin.getName() + "'", null);
+                if (itemIDs.length > 0){
+                    X_AD_ReportView reportViewDB = new X_AD_ReportView(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(reportViewDB.get_ID());
+                    sysMigracionLin.saveEx();
+                }
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Verifico existencia de parametros de procesos en base destino.
+     * Xpande. Created by Gabriel Vila on 10/30/19.
+     * @return
+     */
+    private void setProcesosParamsDestino(){
+
+        try{
+
+            List<MZSysMigracionLin> sysMigracionLinList = this.getLinesByTipoMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_PROCESO_PARAM);
+
+            for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
+
+                // Si el elemento padre de esta columna existe en destino, verifico si esta columna existe en base destino
+                if (sysMigracionLin.getParentDestino_ID() > 0){
+
+                    // Verifico si existe item en la base destino
+                    String whereClause = X_AD_Process_Para.COLUMNNAME_AD_Process_ID + " =" + sysMigracionLin.getParentDestino_ID() +
+                            " AND " + X_AD_Process_Para.COLUMNNAME_Name + " ='" + sysMigracionLin.getName() + "'";
+
+                    int[] itemIDs = PO.getAllIDs(X_AD_Process_Para.Table_Name, whereClause, null);
+                    if (itemIDs.length > 0){
+                        X_AD_Process_Para processParaDB = new X_AD_Process_Para(getCtx(), itemIDs[0], null);
+                        sysMigracionLin.setExisteItem(true);
+                        sysMigracionLin.setDestino_ID(processParaDB.get_ID());
+                        sysMigracionLin.saveEx();
+                    }
+                }
+
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
      * Verifico existencia de referencias en base destino.
      * Xpande. Created by Gabriel Vila on 10/30/19.
      * @return
@@ -2574,7 +2825,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     String action = " update z_sys_migracionlin set ParentDestino_ID =" + referenceDB.get_ID() +
                             " where z_sys_migracion_id =" + this.get_ID() +
                             " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REFERENCIA + "' " +
-                            " and parent_id =" + sysMigracionLin.get_ID();
+                            " and parent_id =" + sysMigracionLin.getRecord_ID();
                     DB.executeUpdateEx(action, get_TrxName());
                 }
             }
@@ -2599,9 +2850,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
 
                 // Verifico si existe item con el mismo nombre en la base destino
-                int[] itemIDs = PO.getAllIDs(X_AD_Element.Table_Name, " Name ='" + sysMigracionLin.getName() + "'", null);
+                int[] itemIDs = PO.getAllIDs(X_AD_Element.Table_Name, " ColumnName ='" + sysMigracionLin.getName() + "'", null);
                 if (itemIDs.length > 0){
-                    MElement elementDB = new MElement(getCtx(), itemIDs[0], null);
+                    X_AD_Element elementDB = new X_AD_Element(getCtx(), itemIDs[0], null);
                     sysMigracionLin.setExisteItem(true);
                     sysMigracionLin.setDestino_ID(elementDB.get_ID());
                     sysMigracionLin.saveEx();
@@ -2610,8 +2861,213 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     String action = " update z_sys_migracionlin set ParentDestino_ID =" + elementDB.get_ID() +
                             " where z_sys_migracion_id =" + this.get_ID() +
                             " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_ELEMENTO + "' " +
-                            " and parent_id =" + sysMigracionLin.get_ID();
+                            " and parent_id =" + sysMigracionLin.getRecord_ID();
                     DB.executeUpdateEx(action, get_TrxName());
+                }
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Verifico existencia de columnas en base destino.
+     * Xpande. Created by Gabriel Vila on 10/30/19.
+     * @return
+     */
+    private void setColumnasDestino(){
+
+        try{
+
+            List<MZSysMigracionLin> sysMigracionLinList = this.getLinesByTipoMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA);
+
+            for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
+
+                // Si el elemento padre de esta columna existe en destino, verifico si esta columna existe en base destino
+                if (sysMigracionLin.getParentDestino_ID() > 0){
+
+                    // Verifico si existe item en la base destino
+                    String whereClause = X_AD_Column.COLUMNNAME_AD_Table_ID + " =" + sysMigracionLin.getParentDestino_ID() +
+                            " AND " + X_AD_Column.COLUMNNAME_ColumnName + " ='" + sysMigracionLin.getName() + "'";
+
+                    int[] itemIDs = PO.getAllIDs(X_AD_Column.Table_Name, whereClause, null);
+                    if (itemIDs.length > 0){
+                        X_AD_Column columnDB = new X_AD_Column(getCtx(), itemIDs[0], null);
+                        sysMigracionLin.setExisteItem(true);
+                        sysMigracionLin.setDestino_ID(columnDB.get_ID());
+                        sysMigracionLin.saveEx();
+
+                        // Actualizo ID destino padre para hijos de esta columna
+                        String action = " update z_sys_migracionlin set ParentDestino_ID =" + columnDB.get_ID() +
+                                " where z_sys_migracion_id =" + this.get_ID() +
+                                " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_COLUMNA + "' " +
+                                " and parent_id =" + sysMigracionLin.getRecord_ID();
+                        DB.executeUpdateEx(action, get_TrxName());
+
+                    }
+                }
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Verifico existencia de pestañas en base destino.
+     * Xpande. Created by Gabriel Vila on 10/30/19.
+     * @return
+     */
+    private void setTabsDestino(){
+
+        try{
+
+            List<MZSysMigracionLin> sysMigracionLinList = this.getLinesByTipoMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_PESTANIA);
+
+            for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
+
+                // Si el elemento padre de esta tab existe en destino, verifico si esta tab existe en base destino
+                if (sysMigracionLin.getParentDestino_ID() > 0){
+
+                    // Verifico si existe item en la base destino
+                    String whereClause = X_AD_Tab.COLUMNNAME_AD_Window_ID + " =" + sysMigracionLin.getParentDestino_ID() +
+                            " AND " + X_AD_Tab.COLUMNNAME_Name + " ='" + sysMigracionLin.getName() + "'";
+
+                    int[] itemIDs = PO.getAllIDs(X_AD_Tab.Table_Name, whereClause, null);
+                    if (itemIDs.length > 0){
+                        X_AD_Tab tabDB = new X_AD_Tab(getCtx(), itemIDs[0], null);
+                        sysMigracionLin.setExisteItem(true);
+                        sysMigracionLin.setDestino_ID(tabDB.get_ID());
+                        sysMigracionLin.saveEx();
+
+                        // Actualizo ID destino padre para hijos de este objeto
+                        String action = " update z_sys_migracionlin set ParentDestino_ID =" + tabDB.get_ID() +
+                                " where z_sys_migracion_id =" + this.get_ID() +
+                                " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_PESTANIA + "' " +
+                                " and parent_id =" + sysMigracionLin.getRecord_ID();
+                        DB.executeUpdateEx(action, get_TrxName());
+                    }
+                }
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Verifico existencia de fields en base destino.
+     * Xpande. Created by Gabriel Vila on 10/30/19.
+     * @return
+     */
+    private void setFieldsDestino(){
+
+        try{
+
+            List<MZSysMigracionLin> sysMigracionLinList = this.getLinesByTipoMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_FIELD);
+
+            for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
+
+                // Si el elemento padre de esta tab existe en destino, verifico si esta tab existe en base destino
+                if (sysMigracionLin.getParentDestino_ID() > 0){
+
+                    // Verifico si existe item en la base destino
+                    String whereClause = X_AD_Field.COLUMNNAME_AD_Tab_ID + " =" + sysMigracionLin.getParentDestino_ID() +
+                            " AND " + X_AD_Field.COLUMNNAME_Name + " ='" + sysMigracionLin.getName() + "'";
+
+                    int[] itemIDs = PO.getAllIDs(X_AD_Field.Table_Name, whereClause, null);
+                    if (itemIDs.length > 0){
+                        X_AD_Field fieldDB = new X_AD_Field(getCtx(), itemIDs[0], null);
+                        sysMigracionLin.setExisteItem(true);
+                        sysMigracionLin.setDestino_ID(fieldDB.get_ID());
+                        sysMigracionLin.saveEx();
+
+                        // Actualizo ID destino padre para hijos de este objeto
+                        String action = " update z_sys_migracionlin set ParentDestino_ID =" + fieldDB.get_ID() +
+                                " where z_sys_migracion_id =" + this.get_ID() +
+                                " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_FIELD + "' " +
+                                " and parent_id =" + sysMigracionLin.getRecord_ID();
+                        DB.executeUpdateEx(action, get_TrxName());
+                    }
+                }
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Verifico existencia de referencias de lista en base destino.
+     * Xpande. Created by Gabriel Vila on 10/30/19.
+     * @return
+     */
+    private void setRefListaDestino(){
+
+        try{
+
+            List<MZSysMigracionLin> sysMigracionLinList = this.getLinesByTipoMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REF_LISTA);
+
+            for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
+
+                // Si el elemento padre de esta ref lista existe en destino, verifico si esta ref lista existe en base destino
+                if (sysMigracionLin.getParentDestino_ID() > 0){
+
+                    // Verifico si existe item en la base destino
+                    String whereClause = X_AD_Ref_List.COLUMNNAME_AD_Reference_ID + " =" + sysMigracionLin.getParentDestino_ID() +
+                            " AND " + X_AD_Ref_List.COLUMNNAME_Value + " ='" + sysMigracionLin.getName() + "'";
+
+                    // Verifico si existe item en la base destino
+                    int[] itemIDs = PO.getAllIDs(X_AD_Ref_List.Table_Name, whereClause, null);
+                    if (itemIDs.length > 0){
+                        X_AD_Ref_List referenceDB = new X_AD_Ref_List(getCtx(), itemIDs[0], null);
+                        sysMigracionLin.setExisteItem(true);
+                        sysMigracionLin.setDestino_ID(referenceDB.get_ID());
+                        sysMigracionLin.saveEx();
+                    }
+                }
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Verifico existencia de referencias de tabla en base destino.
+     * Xpande. Created by Gabriel Vila on 10/30/19.
+     * @return
+     */
+    private void setRefTablaDestino(){
+
+        try{
+
+            List<MZSysMigracionLin> sysMigracionLinList = this.getLinesByTipoMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REF_TABLA);
+
+            for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
+
+                // Si el elemento padre de esta ref lista existe en destino, verifico si esta ref lista existe en base destino
+                if (sysMigracionLin.getParentDestino_ID() > 0){
+
+                    // Verifico si existe item en la base destino
+                    String whereClause = X_AD_Ref_Table.COLUMNNAME_AD_Reference_ID + " =" + sysMigracionLin.getParentDestino_ID() +
+                            " AND " + X_AD_Ref_Table.COLUMNNAME_AD_Table_ID + " =" + sysMigracionLin.getName();
+
+
+                    // Verifico si existe item con el mismo nombre en la base destino
+                    // La tabla de AD_Ref_Table no tiene ID propio, por lo tanto lo busco con una sql
+                    String sql = " select ad_table_id from ad_ref_table where " + whereClause;
+                    int idAux = DB.getSQLValueEx(get_TrxName(), sql);
+                    if (idAux > 0){
+                        sysMigracionLin.setExisteItem(true);
+                        sysMigracionLin.saveEx();
+                    }
                 }
             }
 
@@ -2646,8 +3102,45 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     String action = " update z_sys_migracionlin set ParentDestino_ID =" + processDB.get_ID() +
                             " where z_sys_migracion_id =" + this.get_ID() +
                             " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_PROCESO + "' " +
-                            " and parent_id =" + sysMigracionLin.get_ID();
+                            " and parent_id =" + sysMigracionLin.getRecord_ID();
                     DB.executeUpdateEx(action, get_TrxName());
+                }
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Verifico existencia de tablas en base destino.
+     * Xpande. Created by Gabriel Vila on 10/30/19.
+     * @return
+     */
+    private void setTablasDestino(){
+
+        try{
+
+            List<MZSysMigracionLin> sysMigracionLinList = this.getLinesByTipoMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA);
+
+            for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
+
+                // Verifico si existe item con el mismo nombre en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_Table.Table_Name, " Name ='" + sysMigracionLin.getName() + "'", null);
+                if (itemIDs.length > 0){
+                    X_AD_Table tableDB = new X_AD_Table(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(tableDB.get_ID());
+                    sysMigracionLin.saveEx();
+
+                    // Actualizo ID destino padre para hijos de esta tabla
+                    String action = " update z_sys_migracionlin set ParentDestino_ID =" + tableDB.get_ID() +
+                            " where z_sys_migracion_id =" + this.get_ID() +
+                            " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA + "' " +
+                            " and parent_id =" + sysMigracionLin.getRecord_ID();
+                    DB.executeUpdateEx(action, get_TrxName());
+
                 }
             }
 
@@ -2679,27 +3172,11 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 sysMigracionLin.setVersionNo(adWindow.get_ValueAsString("VersionNo"));
                 sysMigracionLin.setEntityType(adWindow.getEntityType());
                 sysMigracionLin.setIsSelected(true);
-
-                // Verifico si existe item con el mismo nombre en la base destino
-                int[] itemIDs = PO.getAllIDs(X_AD_Window.Table_Name, " Name ='" + adWindow.getName() + "'", null);
-                if (itemIDs.length > 0){
-                    X_AD_Window windowDB = new X_AD_Window(getCtx(), itemIDs[0], null);
-                    sysMigracionLin.setExisteItem(true);
-                    sysMigracionLin.setDestino_ID(windowDB.get_ID());
-
-                    // Actualizo ID destino padre para hijos de este elemento
-                    String action = " update z_sys_migracionlin set ParentDestino_ID =" + windowDB.get_ID() +
-                            " where z_sys_migracion_id =" + this.get_ID() +
-                            " and tiposysmigraobjfrom ='" + X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_VENTANA + "' " +
-                            " and parent_id =" + adWindow.get_ID();
-                    DB.executeUpdateEx(action, get_TrxName());
-
-                }
-                else {
-                    sysMigracionLin.setExisteItem(false);
-                }
+                sysMigracionLin.setExisteItem(false);
 
                 sysMigracionLin.saveEx();
+
+                adWindow.setSysMigraLinID(sysMigracionLin.get_ID());
             }
         }
         catch (Exception e){
@@ -2726,4 +3203,267 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         return lines;
     }
 
+
+    /***
+     * Importa objetos del diccionario seleccionados en base destino
+     * Xpande. Created by Gabriel Vila on 10/31/19.
+     * @return
+     */
+    public String importData(){
+
+        String message = null;
+
+        try{
+
+            if ((this.getFilePathOrName() == null) || (this.getFilePathOrName().trim().equalsIgnoreCase(""))){
+                return "Debe indicar archivo a procesar.";
+            }
+
+            this.cabezalMigracion = null;
+
+            // Deserializo objeto contenido en el archivo de interface
+            Object value = null;
+            FileInputStream os1 = new FileInputStream(this.getFilePathOrName().trim());
+            XMLDecoder decoder = new XMLDecoder(os1);
+            value = decoder.readObject();
+            decoder.close();
+
+            if (value == null){
+                return "No se pudo obtener información desde archivo indicado.";
+            }
+
+            // Obtengo modelo con la información contenido en el archivo
+            this.cabezalMigracion = (CabezalMigracion) value;
+
+
+            // Importo Validaciones
+            this.importValidaciones();
+
+            // Importo Referencias
+            this.importReferencias();
+
+            // Exporto Referencias Lista
+            //this.exportReferenciasLista();
+
+            // Exporto Referencias Tabla
+            //this.exportReferenciasTabla();
+
+            // Exporto Elementos
+            //this.exportElementos();
+
+            // Exporto Tablas
+            //this.exportTablas();
+
+            // Exporto Columnas
+            //this.exportColumnas();
+
+            // Exporto Procesos
+            //this.exportProcesos();
+
+            // Exporto Parametros de Procesos
+            //this.exportProcesosParam();
+
+            // Export vistas de informes
+            //this.exportVistaInformes();
+
+            // Exporto Ventanas
+            //this.exportVentanas();
+
+            // Exporto Pestañás
+            //this.exportTabs();
+
+            // Exporto Fields
+            //this.exportFields();
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
+    }
+
+    /***
+     * Importo validaciones en base destino.
+     * Xpande. Created by Gabriel Vila on 10/31/19.
+     */
+    private void importValidaciones() {
+
+        try{
+
+            this.hashValidaciones = new HashMap<Integer, Integer>();
+
+            for (ADVal_Rule adValRule: this.cabezalMigracion.getValRuleList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Val_Rule.Table_ID, adValRule.get_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        return;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                MValRule model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Creo nuevo modelo de objeto
+                    model = new MValRule(getCtx(), 0, get_TrxName());
+                    model.setAD_Org_ID(0);
+                    model.setCode(adValRule.getCode());
+                    model.setName(adValRule.getName());
+                    model.setDescription(adValRule.getDescription());
+                    model.setType(adValRule.getType());
+                    model.setEntityType(adValRule.getEntityType());
+                    model.saveEx();
+
+                    // Guardo ID del objeto creado en linea de migración.
+                    sysMigracionLin.setDestino_ID(model.get_ID());
+                    sysMigracionLin.saveEx();
+
+                    // Agrego asociación de ID origen con ID destino
+                    this.hashValidaciones.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
+                }
+                else {
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new MValRule(getCtx(), sysMigracionLin.getDestino_ID(), get_TrxName());
+                }
+
+                if ((model == null) || (model.get_ID() <= 0)){
+                    throw new AdempiereException("No se pudo importar : " + X_AD_Val_Rule.Table_Name + " - " + adValRule.get_ID());
+                }
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Importo Referencias en base destino.
+     * Xpande. Created by Gabriel Vila on 10/31/19.
+     */
+    private void importReferencias() {
+
+        try{
+
+            this.hashReferencias = new HashMap<Integer, Integer>();
+
+            for (ADReference adReference: this.cabezalMigracion.getReferenceList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Reference.Table_ID, adReference.get_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        return;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                X_AD_Reference model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Creo nuevo modelo de objeto
+                    model = new X_AD_Reference(getCtx(), 0, get_TrxName());
+                    model.setAD_Org_ID(0);
+                    model.setName(adReference.getName());
+                    model.setDescription(adReference.getDescription());
+                    model.setHelp(adReference.getHelp());
+                    model.setValidationType(adReference.getValidationType());
+                    model.setVFormat(adReference.getVFormat());
+                    model.setEntityType(adReference.getEntityType());
+                    model.setIsOrderByValue(adReference.isOrderByValue());
+                    model.saveEx();
+
+                    // Guardo ID del objeto creado en linea de migración.
+                    sysMigracionLin.setDestino_ID(model.get_ID());
+                    sysMigracionLin.saveEx();
+
+                    // Agrego asociación de ID origen con ID destino
+                    this.hashReferencias.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
+                }
+                else {
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new X_AD_Reference(getCtx(), sysMigracionLin.getDestino_ID(), get_TrxName());
+                }
+
+                if ((model == null) || (model.get_ID() <= 0)){
+                    throw new AdempiereException("No se pudo importar : " + X_AD_Reference.Table_Name + " - " + adReference.get_ID());
+                }
+
+                // Si importa traduccion
+                if (importTraduccion){
+                    // Lo hago
+                    this.importTraducciones(X_AD_Reference.Table_Name, model.get_ID(), adReference.getTraduccionList());
+                }
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Obtiene y retorna linea segun tabla y registro.
+     * Xpande. Created by Gabriel Vila on 10/31/19.
+     * @param adTableID
+     * @param recordID
+     * @return
+     */
+    private MZSysMigracionLin getLineByTableRecord(int adTableID, int recordID){
+
+        String whereClause = X_Z_Sys_MigracionLin.COLUMNNAME_Z_Sys_Migracion_ID + " =" + this.get_ID() +
+                " AND " + X_Z_Sys_MigracionLin.COLUMNNAME_AD_Table_ID + " =" + adTableID +
+                " AND " + X_Z_Sys_MigracionLin.COLUMNNAME_Record_ID + " =" + recordID;
+
+        MZSysMigracionLin model = new Query(getCtx(), I_Z_Sys_MigracionLin.Table_Name, whereClause, get_TrxName()).first();
+
+        return model;
+    }
 }
