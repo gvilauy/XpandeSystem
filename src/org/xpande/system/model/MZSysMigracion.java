@@ -3242,11 +3242,11 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             // Importo Referencias
             this.importReferencias();
 
-            // Exporto Referencias Lista
-            //this.exportReferenciasLista();
+            // Importo Referencias Lista
+            this.importReferenciasLista();
 
-            // Exporto Referencias Tabla
-            //this.exportReferenciasTabla();
+            // Importo Referencias Tabla
+            this.importReferenciasTabla();
 
             // Exporto Elementos
             //this.exportElementos();
@@ -3450,6 +3450,169 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
     }
 
     /***
+     * Importo Referencias de Lista en base destino.
+     * Xpande. Created by Gabriel Vila on 11/3/19.
+     */
+    private void importReferenciasLista() {
+
+        try{
+
+            for (ADRef_List adRefList: this.cabezalMigracion.getRefListList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Ref_List.Table_ID, adRefList.get_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        return;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                X_AD_Ref_List model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Si no encuentro ID del padre en hash, salgo con error.
+                    if (!this.hashReferencias.containsKey(adRefList.getParentID())){
+                        throw new AdempiereException("No se pudo obtener padre desde hash para : " + X_AD_Ref_List.Table_Name + " - " + adRefList.get_ID());
+                    }
+
+                    // Creo nuevo modelo de objeto
+                    model = new X_AD_Ref_List(getCtx(), 0, get_TrxName());
+                    model.setAD_Org_ID(0);
+                    model.setAD_Reference_ID(this.hashReferencias.get(adRefList.getParentID()));
+                    model.setValue(adRefList.getValue());
+                    model.setName(adRefList.getName());
+                    model.setDescription(adRefList.getDescription());
+                    model.setValidFrom(adRefList.getValidFrom());
+                    model.setValidTo(adRefList.getValidTo());
+                    model.setEntityType(adRefList.getEntityType());
+                    model.saveEx();
+
+                    // Guardo ID del objeto creado en linea de migración.
+                    sysMigracionLin.setDestino_ID(model.get_ID());
+                    sysMigracionLin.saveEx();
+                }
+                else {
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new X_AD_Ref_List(getCtx(), sysMigracionLin.getDestino_ID(), get_TrxName());
+                }
+
+                if ((model == null) || (model.get_ID() <= 0)){
+                    throw new AdempiereException("No se pudo importar : " + X_AD_Ref_List.Table_Name + " - " + adRefList.get_ID());
+                }
+
+                // Si importa traduccion
+                if (importTraduccion){
+                    // Lo hago
+                    this.importTraducciones(X_AD_Ref_List.Table_Name, model.get_ID(), adRefList.getTraduccionList());
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Importo Referencias de Tabla en base destino.
+     * Xpande. Created by Gabriel Vila on 11/3/19.
+     */
+    private void importReferenciasTabla() {
+
+        try{
+
+            for (ADRef_Table adRefTable: this.cabezalMigracion.getRefTableList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecordParent(X_AD_Ref_Table.Table_ID, adRefTable.get_ID(), adRefTable.getParentID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        return;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                X_AD_Ref_Table model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Si no encuentro ID del padre en hash, salgo con error.
+                    if (!this.hashReferencias.containsKey(adRefTable.getParentID())){
+                        throw new AdempiereException("No se pudo obtener padre desde hash para : " + X_AD_Ref_Table.Table_Name + " - " + adRefTable.get_ID());
+                    }
+
+                    // Creo nuevo modelo de objeto
+                    model = new X_AD_Ref_Table(getCtx(), 0, get_TrxName());
+                    model.setAD_Org_ID(0);
+                    model.setAD_Reference_ID(this.hashReferencias.get(adRefTable.getParentID()));
+                    model.setAD_Table_ID(adRefTable.getAD_Table_ID());
+                    model.setAD_Key(adRefTable.getAD_Key());
+                    model.setAD_Display(adRefTable.getAD_Display());
+                    model.setIsValueDisplayed(adRefTable.isValueDisplayed());
+                    model.setWhereClause(adRefTable.getWhereClause());
+                    model.setOrderByClause(adRefTable.getOrderByClause());
+                    model.setEntityType(adRefTable.getEntityType());
+                    model.setAD_Window_ID(adRefTable.getAD_Window_ID());
+                    model.setIsAlert(adRefTable.isAlert());
+                    model.setDisplaySQL(adRefTable.getDisplaySQL());
+                    model.setIsDisplayIdentifier(adRefTable.isDisplayIdentifier());
+                    model.saveEx();
+                }
+
+                if ((model == null) || (model.get_ID() <= 0)){
+                    throw new AdempiereException("No se pudo importar : " + X_AD_Ref_Table.Table_Name + " - " + adRefTable.get_ID());
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
      * Obtiene y retorna linea segun tabla y registro.
      * Xpande. Created by Gabriel Vila on 10/31/19.
      * @param adTableID
@@ -3466,4 +3629,25 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
         return model;
     }
+
+    /***
+     * Obtiene y retorna linea segun tabla, registro e id del padre.
+     * Xpande. Created by Gabriel Vila on 10/31/19.
+     * @param adTableID
+     * @param recordID
+     * @param parentID
+     * @return
+     */
+    private MZSysMigracionLin getLineByTableRecordParent(int adTableID, int recordID, int parentID){
+
+        String whereClause = X_Z_Sys_MigracionLin.COLUMNNAME_Z_Sys_Migracion_ID + " =" + this.get_ID() +
+                " AND " + X_Z_Sys_MigracionLin.COLUMNNAME_AD_Table_ID + " =" + adTableID +
+                " AND " + X_Z_Sys_MigracionLin.COLUMNNAME_Record_ID + " =" + recordID +
+                " AND " + X_Z_Sys_MigracionLin.COLUMNNAME_Parent_ID + " =" + parentID;
+
+        MZSysMigracionLin model = new Query(getCtx(), I_Z_Sys_MigracionLin.Table_Name, whereClause, get_TrxName()).first();
+
+        return model;
+    }
+
 }
