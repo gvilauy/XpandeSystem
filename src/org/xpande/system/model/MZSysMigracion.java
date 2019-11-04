@@ -3657,12 +3657,12 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
     /***
      * Importo Columnas de tablas en base destino.
+     * Proceso sensible.
      * Xpande. Created by Gabriel Vila on 11/4/19.
      */
     private void importColumnas() {
 
         String sql = null;
-
         try{
 
             this.hashColumnas = new HashMap<Integer, Integer>();
