@@ -5,6 +5,7 @@ import org.compiere.model.*;
 import org.compiere.util.DB;
 import org.compiere.util.ValueNamePair;
 import org.xpande.system.migration.*;
+import org.xpande.system.utils.SystemUtils;
 
 import javax.el.MapELResolver;
 import java.beans.XMLDecoder;
@@ -29,6 +30,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
     private CabezalMigracion cabezalMigracion = null;
     private HashMap<Integer, Integer> hashValidaciones = new HashMap<Integer, Integer>();
     private HashMap<Integer, Integer> hashReferencias = new HashMap<Integer, Integer>();
+    private HashMap<Integer, Integer> hashElementos = new HashMap<Integer, Integer>();
+    private HashMap<Integer, Integer> hashTablas = new HashMap<Integer, Integer>();
+    private HashMap<Integer, Integer> hashColumnas = new HashMap<Integer, Integer>();
 
     public MZSysMigracion(Properties ctx, int Z_Sys_Migracion_ID, String trxName) {
         super(ctx, Z_Sys_Migracion_ID, trxName);
@@ -608,9 +612,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
             sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
             sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REF_TABLA);
-            sysMigracionLin.setName(String.valueOf(reference.getAD_Table_ID()));
+            sysMigracionLin.setName(parentName);
             sysMigracionLin.setAD_Table_ID(I_AD_Ref_Table.Table_ID);
-            sysMigracionLin.setRecord_ID(reference.get_ID());
+            sysMigracionLin.setRecord_ID(parentID);
             sysMigracionLin.setStartDate(reference.getUpdated());
             sysMigracionLin.setVersionNo(reference.get_ValueAsString("VersionNo"));
             sysMigracionLin.setEntityType(reference.getEntityType());
@@ -1513,7 +1517,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         ResultSet rs = null;
 
         try{
-            sql = " select record_id as ad_ref_table_id, TipoSysMigraObjFrom, parentName, parent_ID " +
+            sql = " select record_id as ad_reference_id, name, TipoSysMigraObjFrom, parentName, parent_ID " +
                     " from z_sys_migracionlin " +
                     " where z_sys_migracion_id = " + this.get_ID() +
                     " and ad_table_id =" + I_AD_Ref_Table.Table_ID +
@@ -1524,7 +1528,11 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             rs = pstmt.executeQuery();
 
             while(rs.next()){
-                ADRef_Table adRefTable = new ADRef_Table(getCtx(), rs.getInt("ad_ref_table_id"), null);
+
+                // Las referencia de tabla, tienen como clave primaria la columna: AD_Reference_ID. Por lo tanto para obtener el modelo
+                // no puedo usar el new.
+                ADRef_Table adRefTable = SystemUtils.getRefTableByReferenceID(getCtx(), rs.getInt("ad_reference_id"), null);
+                adRefTable.setNombreReferencia(rs.getString("name"));
                 adRefTable.setParentType(rs.getString("TipoSysMigraObjFrom"));
                 adRefTable.setParentName(rs.getString("parentName"));
                 adRefTable.setParentID(rs.getInt("parent_ID"));
@@ -1785,7 +1793,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     action += "name, description, help) " +
                             " VALUES (" + recordID + ", 0,0,'Y','" + traduccion.getCreated() + "', " + traduccion.getCreatedBy() + ", '" + traduccion.getUpdated() + "', " +
                             traduccion.getUpdatedBy() + ", '" + traduccion.getIsTranslated() + "', '" + traduccion.getLanguage() + "', '" +
-                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null, " : "', '" + traduccion.getDescription() + "'") +
+                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null " : "', '" + traduccion.getDescription() + "'") +
                             ((traduccion.getHelp() == null) ? ", null" : ", '" + traduccion.getHelp() + "'") + ") ";
                 }
 
@@ -1795,13 +1803,13 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     action += "name, description, help, printname, po_name, po_description, po_help, po_printname) " +
                             " VALUES (" + recordID + ", 0,0,'Y','" + traduccion.getCreated() + "', " + traduccion.getCreatedBy() + ", '" + traduccion.getUpdated() + "', " +
                             traduccion.getUpdatedBy() + ", '" + traduccion.getIsTranslated() + "', '" + traduccion.getLanguage() + "', '" +
-                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null, " : "', '" + traduccion.getDescription() + "'") +
-                            ((traduccion.getHelp() == null) ? ", null, " : ", '" + traduccion.getHelp() + "'") +
-                            ((traduccion.getPrintName() == null) ? ", null, " : ", '" + traduccion.getPrintName() + "'") +
-                            ((traduccion.getPoName() == null) ? ", null, " : ", '" + traduccion.getPoName() + "'") +
-                            ((traduccion.getPoDescription() == null) ? ", null, " : ", '" + traduccion.getPoDescription() + "'") +
-                            ((traduccion.getPoHelp() == null) ? ", null, " : ", '" + traduccion.getPoHelp() + "'") +
-                            ((traduccion.getPoPrintName() == null) ? ", null, " : ", '" + traduccion.getPoPrintName() + "'") + ") ";
+                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null " : "', '" + traduccion.getDescription() + "'") +
+                            ((traduccion.getHelp() == null) ? ", null " : ", '" + traduccion.getHelp() + "'") +
+                            ((traduccion.getPrintName() == null) ? ", null " : ", '" + traduccion.getPrintName() + "'") +
+                            ((traduccion.getPoName() == null) ? ", null " : ", '" + traduccion.getPoName() + "'") +
+                            ((traduccion.getPoDescription() == null) ? ", null " : ", '" + traduccion.getPoDescription() + "'") +
+                            ((traduccion.getPoHelp() == null) ? ", null " : ", '" + traduccion.getPoHelp() + "'") +
+                            ((traduccion.getPoPrintName() == null) ? ", null " : ", '" + traduccion.getPoPrintName() + "'") + ") ";
                 }
 
                 // Name, Description, PrintName
@@ -1810,7 +1818,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     action += "name, description, printname) " +
                             " VALUES (" + recordID + ", 0, 0,'Y','" + traduccion.getCreated() + "', " + traduccion.getCreatedBy() + ", '" + traduccion.getUpdated() + "', " +
                             traduccion.getUpdatedBy() + ", '" + traduccion.getIsTranslated() + "', '" + traduccion.getLanguage() + "', '" +
-                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null, " : "', '" + traduccion.getDescription() + "'") +
+                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null " : "', '" + traduccion.getDescription() + "'") +
                             ((traduccion.getPrintName() == null) ? ", null" : ", '" + traduccion.getPrintName() + "'") + ") ";
 
                 }
@@ -1821,9 +1829,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     action += "name, description, help, commitwarning) " +
                             " VALUES (" + recordID + ", 0, 0,'Y','" + traduccion.getCreated() + "', " + traduccion.getCreatedBy() + ", '" + traduccion.getUpdated() + "', " +
                             traduccion.getUpdatedBy() + ", '" + traduccion.getIsTranslated() + "', '" + traduccion.getLanguage() + "', '" +
-                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null, " : "', '" + traduccion.getDescription() + "'") +
-                            ((traduccion.getHelp() == null) ? ", null, " : ", '" + traduccion.getHelp() + "'") +
-                            ((traduccion.getCommitWarning() == null) ? ", null, " : ", '" + traduccion.getCommitWarning() + "'") + ") ";
+                            traduccion.getName() + ((traduccion.getDescription() == null) ? "', null " : "', '" + traduccion.getDescription() + "'") +
+                            ((traduccion.getHelp() == null) ? ", null " : ", '" + traduccion.getHelp() + "'") +
+                            ((traduccion.getCommitWarning() == null) ? ", null " : ", '" + traduccion.getCommitWarning() + "'") + ") ";
 
                 }
 
@@ -2527,9 +2535,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
                 sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
                 sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_REF_TABLA);
-                sysMigracionLin.setName(String.valueOf(adRefTable.getAD_Table_ID()));
+                sysMigracionLin.setName(adRefTable.getNombreReferencia());
                 sysMigracionLin.setAD_Table_ID(I_AD_Ref_Table.Table_ID);
-                sysMigracionLin.setRecord_ID(adRefTable.get_ID());
+                sysMigracionLin.setRecord_ID(adRefTable.getAD_Reference_ID());
                 sysMigracionLin.setStartDate(adRefTable.getUpdated());
                 sysMigracionLin.setVersionNo(adRefTable.get_ValueAsString("VersionNo"));
                 sysMigracionLin.setEntityType(adRefTable.getEntityType());
@@ -3052,20 +3060,19 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
 
-                // Si el elemento padre de esta ref lista existe en destino, verifico si esta ref lista existe en base destino
+                // Si el elemento padre de esta ref tabla existe en destino, verifico si esta ref tabla existe en base destino
                 if (sysMigracionLin.getParentDestino_ID() > 0){
 
                     // Verifico si existe item en la base destino
-                    String whereClause = X_AD_Ref_Table.COLUMNNAME_AD_Reference_ID + " =" + sysMigracionLin.getParentDestino_ID() +
-                            " AND " + X_AD_Ref_Table.COLUMNNAME_AD_Table_ID + " =" + sysMigracionLin.getName();
+                    String whereClause = X_AD_Ref_Table.COLUMNNAME_AD_Reference_ID + " =" + sysMigracionLin.getParentDestino_ID();
 
-
-                    // Verifico si existe item con el mismo nombre en la base destino
+                    // Verifico si existe item en la base destino
                     // La tabla de AD_Ref_Table no tiene ID propio, por lo tanto lo busco con una sql
-                    String sql = " select ad_table_id from ad_ref_table where " + whereClause;
+                    String sql = " select ad_reference_id from ad_ref_table where " + whereClause;
                     int idAux = DB.getSQLValueEx(get_TrxName(), sql);
                     if (idAux > 0){
                         sysMigracionLin.setExisteItem(true);
+                        sysMigracionLin.setDestino_ID(sysMigracionLin.getParentDestino_ID());
                         sysMigracionLin.saveEx();
                     }
                 }
@@ -3242,20 +3249,20 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             // Importo Referencias
             this.importReferencias();
 
-            // Exporto Referencias Lista
-            //this.exportReferenciasLista();
+            // Importo Referencias Lista
+            this.importReferenciasLista();
 
-            // Exporto Referencias Tabla
-            //this.exportReferenciasTabla();
+            // Importo Referencias Tabla
+            this.importReferenciasTabla();
 
-            // Exporto Elementos
-            //this.exportElementos();
+            // Importo Elementos
+            this.importElementos();
 
-            // Exporto Tablas
-            //this.exportTablas();
+            // Importo Tablas
+            this.importTablas();
 
-            // Exporto Columnas
-            //this.exportColumnas();
+            // Importo Columnas
+            this.importColumnas();
 
             // Exporto Procesos
             //this.exportProcesos();
@@ -3311,7 +3318,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (sysMigracionLin.isExisteItem()){
                     // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
                     if (!this.isTranslated()){
-                        return;
+                        continue;
                     }
                     else {
                         // Solamente sobrescribir traducciones de este objeto
@@ -3343,8 +3350,6 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     sysMigracionLin.setDestino_ID(model.get_ID());
                     sysMigracionLin.saveEx();
 
-                    // Agrego asociación de ID origen con ID destino
-                    this.hashValidaciones.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
                 }
                 else {
                     // Obtengo modelo existente en base destino según ID destino
@@ -3354,6 +3359,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if ((model == null) || (model.get_ID() <= 0)){
                     throw new AdempiereException("No se pudo importar : " + X_AD_Val_Rule.Table_Name + " - " + adValRule.get_ID());
                 }
+
+                // Agrego asociación de ID origen con ID destino
+                this.hashValidaciones.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
+
             }
 
         }
@@ -3390,7 +3399,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (sysMigracionLin.isExisteItem()){
                     // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
                     if (!this.isTranslated()){
-                        return;
+                        continue;
                     }
                     else {
                         // Solamente sobrescribir traducciones de este objeto
@@ -3424,8 +3433,6 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     sysMigracionLin.setDestino_ID(model.get_ID());
                     sysMigracionLin.saveEx();
 
-                    // Agrego asociación de ID origen con ID destino
-                    this.hashReferencias.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
                 }
                 else {
                     // Obtengo modelo existente en base destino según ID destino
@@ -3436,6 +3443,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     throw new AdempiereException("No se pudo importar : " + X_AD_Reference.Table_Name + " - " + adReference.get_ID());
                 }
 
+                // Agrego asociación de ID origen con ID destino
+                this.hashReferencias.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
+
                 // Si importa traduccion
                 if (importTraduccion){
                     // Lo hago
@@ -3443,6 +3453,624 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 }
             }
 
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Importo Elementos en base destino.
+     * Xpande. Created by Gabriel Vila on 11/4/19.
+     */
+    private void importElementos() {
+
+        try{
+
+            this.hashElementos = new HashMap<Integer, Integer>();
+
+            for (ADElement adElement: this.cabezalMigracion.getElementList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Element.Table_ID, adElement.get_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        continue;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                M_Element model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Creo nuevo modelo de objeto
+                    model = new M_Element(getCtx(), 0, get_TrxName());
+                    model.setAD_Org_ID(0);
+                    model.setColumnName(adElement.getColumnName());
+                    model.setEntityType(adElement.getEntityType());
+                    model.setName(adElement.getName());
+                    model.setPrintName(adElement.getPrintName());
+                    model.setDescription(adElement.getDescription());
+                    model.setHelp(adElement.getHelp());
+                    model.setPO_Name(adElement.getPO_Name());
+                    model.setPO_PrintName(adElement.getPO_PrintName());
+                    model.setPO_Description(adElement.getPO_Description());
+                    model.setPO_Help(adElement.getPO_Help());
+                    model.setFieldLength(adElement.getFieldLength());
+                    model.setAD_Reference_ID(adElement.getAD_Reference_ID());
+
+                    if (adElement.getAD_Reference_Value_ID() > 0){
+                        if (this.hashReferencias.containsKey(adElement.getAD_Reference_Value_ID())){
+                            model.setAD_Reference_Value_ID(this.hashReferencias.get(adElement.getAD_Reference_Value_ID()).intValue());
+                        }
+                        else {
+                            model.setAD_Reference_Value_ID(adElement.getAD_Reference_Value_ID());
+                        }
+                    }
+
+                    model.saveEx();
+
+                    // Guardo ID del objeto creado en linea de migración.
+                    sysMigracionLin.setDestino_ID(model.get_ID());
+                    sysMigracionLin.saveEx();
+
+                }
+                else {
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new M_Element(getCtx(), sysMigracionLin.getDestino_ID(), get_TrxName());
+                }
+
+                if ((model == null) || (model.get_ID() <= 0)){
+                    throw new AdempiereException("No se pudo importar : " + X_AD_Element.Table_Name + " - " + adElement.get_ID());
+                }
+
+                // Agrego asociación de ID origen con ID destino
+                this.hashElementos.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
+
+                // Si importa traduccion
+                if (importTraduccion){
+                    // Lo hago
+                    this.importTraducciones(X_AD_Element.Table_Name, model.get_ID(), adElement.getTraduccionList());
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Importo Tablas en base destino.
+     * Xpande. Created by Gabriel Vila on 11/4/19.
+     */
+    private void importTablas() {
+
+        try{
+
+            this.hashTablas = new HashMap<Integer, Integer>();
+
+            for (ADTable adTable: this.cabezalMigracion.getTableList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Table.Table_ID, adTable.get_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        continue;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                MTable model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Creo nuevo modelo de objeto
+                    model = new MTable(getCtx(), 0, get_TrxName());
+                    model.setAD_Org_ID(0);
+                    model.setName(adTable.getName());
+                    model.setDescription(adTable.getDescription());
+                    model.setHelp(adTable.getHelp());
+                    model.setTableName(adTable.getTableName());
+                    model.setIsView(adTable.isView());
+                    model.setAccessLevel(adTable.getAccessLevel());
+                    model.setEntityType(adTable.getEntityType());
+                    model.setIsSecurityEnabled(adTable.isSecurityEnabled());
+                    model.setIsDeleteable(adTable.isDeleteable());
+                    model.setIsHighVolume(adTable.isHighVolume());
+                    model.setIsChangeLog(adTable.isChangeLog());
+                    model.setReplicationType(adTable.getReplicationType());
+                    model.setIsCentrallyMaintained(adTable.isCentrallyMaintained());
+                    model.setIsDocument(adTable.isDocument());
+
+                    model.saveEx();
+
+                    // Guardo ID del objeto creado en linea de migración.
+                    sysMigracionLin.setDestino_ID(model.get_ID());
+                    sysMigracionLin.saveEx();
+                }
+                else {
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new MTable(getCtx(), sysMigracionLin.getDestino_ID(), get_TrxName());
+                }
+
+                if ((model == null) || (model.get_ID() <= 0)){
+                    throw new AdempiereException("No se pudo importar : " + X_AD_Table.Table_Name + " - " + adTable.get_ID());
+                }
+
+                // Agrego asociación de ID origen con ID destino
+                this.hashTablas.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
+
+                // Si importa traduccion
+                if (importTraduccion){
+                    // Lo hago
+                    this.importTraducciones(X_AD_Tab.Table_Name, model.get_ID(), adTable.getTraduccionList());
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Importo Columnas de tablas en base destino.
+     * Xpande. Created by Gabriel Vila on 11/4/19.
+     */
+    private void importColumnas() {
+
+        String sql = null;
+
+        try{
+
+            this.hashColumnas = new HashMap<Integer, Integer>();
+
+            for (ADColumn adColumn: this.cabezalMigracion.getColumnList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Column.Table_ID, adColumn.get_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        continue;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                MColumn model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Verifico nuevamente si columna no existe para tabla ya que se puede haber creado la tabla en este mismo proceso y esta ser una columna
+                    // de auditoria o de documento (y por lo tanto ya se agrego automaticamente en el aftersave de la tabla).
+                    int adTableIDAux = adColumn.getParentID();
+                    if (this.hashTablas.containsKey(adColumn.getParentID())){
+                        adTableIDAux = this.hashTablas.get(adColumn.getParentID()).intValue();
+                    }
+                    sql = " select ad_column_id from ad_column where ad_table_id =" + adTableIDAux + " and lower(columnname) =" + adColumn.getColumnName().toLowerCase();
+                    int adColumnIDAux = DB.getSQLValueEx(get_TrxName(), sql);
+
+                    // Si columna no existe
+                    if (adColumnIDAux <= 0){
+                        // Creo nuevo modelo de objeto
+                        model = new MColumn(getCtx(), 0, get_TrxName());
+                        model.setAD_Org_ID(0);
+                        model.setName(adColumn.getName());
+                        model.setDescription(adColumn.getDescription());
+                        model.setHelp(adColumn.getHelp());
+                        model.setEntityType(adColumn.getEntityType());
+                        model.setColumnName(adColumn.getColumnName());
+                        model.setAD_Table_ID(adTableIDAux);
+                        model.setAD_Reference_ID(adColumn.getAD_Reference_ID());
+                        model.setFieldLength(adColumn.getFieldLength());
+                        model.setDefaultValue(adColumn.getDefaultValue());
+                        model.setIsKey(adColumn.isKey());
+                        model.setIsParent(adColumn.isParent());
+                        model.setIsMandatory(adColumn.isMandatory());
+                        model.setIsUpdateable(adColumn.isUpdateable());
+                        model.setReadOnlyLogic(adColumn.getReadOnlyLogic());
+                        model.setIsIdentifier(adColumn.isIdentifier());
+                        model.setIsTranslated(adColumn.isTranslated());
+                        model.setIsEncrypted(adColumn.getIsEncrypted());
+                        model.setCallout(adColumn.getCallout());
+                        model.setVFormat(adColumn.getVFormat());
+                        model.setValueMin(adColumn.getValueMin());
+                        model.setValueMax(adColumn.getValueMax());
+                        model.setIsSelectionColumn(adColumn.isSelectionColumn());
+                        model.setIsAlwaysUpdateable(adColumn.isAlwaysUpdateable());
+                        model.setColumnSQL(adColumn.getColumnSQL());
+                        model.setMandatoryLogic(adColumn.getMandatoryLogic());
+                        model.setInfoFactoryClass(adColumn.getInfoFactoryClass());
+                        model.setIsAutocomplete(adColumn.isAutocomplete());
+                        model.setIsAllowLogging(adColumn.isAllowLogging());
+                        model.setFormatPattern(adColumn.getFormatPattern());
+                        model.setIsRange(adColumn.isRange());
+                        model.setIsAllowCopy(adColumn.isAllowCopy());
+
+                        if (model.getAD_Reference_Value_ID() > 0){
+                            if (this.hashReferencias.containsKey(adColumn.getAD_Reference_Value_ID())){
+                                model.setAD_Reference_Value_ID(this.hashReferencias.get(adColumn.getAD_Reference_Value_ID()));
+                            }
+                            else {
+                                model.setAD_Reference_Value_ID(adColumn.getAD_Reference_Value_ID());
+                            }
+                        }
+
+                        if (model.getAD_Val_Rule_ID() > 0){
+                            if (this.hashValidaciones.containsKey(adColumn.getAD_Val_Rule_ID())){
+                                model.setAD_Val_Rule_ID(this.hashValidaciones.get(adColumn.getAD_Val_Rule_ID()));
+                            }
+                            else {
+                                model.setAD_Val_Rule_ID(adColumn.getAD_Val_Rule_ID());
+                            }
+                        }
+
+                        if (this.hashElementos.containsKey(adColumn.getAD_Element_ID())){
+                            model.setAD_Element_ID(this.hashElementos.get(adColumn.getAD_Element_ID()).intValue());
+                        }
+                        else {
+                            model.setAD_Element_ID(adColumn.getAD_Element_ID());
+                        }
+
+                        model.saveEx();
+
+                        // Sincronizo columna con DB
+                        model.syncDatabase();
+
+                        // Guardo ID del objeto creado en linea de migración.
+                        sysMigracionLin.setDestino_ID(model.get_ID());
+                    }
+                    else {
+
+                        // Obtengo modelo existente en base destino según ID destino
+                        model = new MColumn(getCtx(), adColumnIDAux, get_TrxName());
+
+                        // Modifico atributos
+                        model.setName(adColumn.getName());
+                        model.setDescription(adColumn.getDescription());
+                        model.setHelp(adColumn.getHelp());
+                        model.setEntityType(adColumn.getEntityType());
+                        model.setAD_Reference_ID(adColumn.getAD_Reference_ID());
+                        model.setFieldLength(adColumn.getFieldLength());
+                        model.setDefaultValue(adColumn.getDefaultValue());
+                        model.setIsKey(adColumn.isKey());
+                        model.setIsParent(adColumn.isParent());
+                        model.setIsMandatory(adColumn.isMandatory());
+                        model.setIsUpdateable(adColumn.isUpdateable());
+                        model.setReadOnlyLogic(adColumn.getReadOnlyLogic());
+                        model.setIsIdentifier(adColumn.isIdentifier());
+                        model.setIsTranslated(adColumn.isTranslated());
+                        model.setIsEncrypted(adColumn.getIsEncrypted());
+                        model.setCallout(adColumn.getCallout());
+                        model.setVFormat(adColumn.getVFormat());
+                        model.setValueMin(adColumn.getValueMin());
+                        model.setValueMax(adColumn.getValueMax());
+                        model.setIsSelectionColumn(adColumn.isSelectionColumn());
+                        model.setIsAlwaysUpdateable(adColumn.isAlwaysUpdateable());
+                        model.setColumnSQL(adColumn.getColumnSQL());
+                        model.setMandatoryLogic(adColumn.getMandatoryLogic());
+                        model.setInfoFactoryClass(adColumn.getInfoFactoryClass());
+                        model.setIsAutocomplete(adColumn.isAutocomplete());
+                        model.setIsAllowLogging(adColumn.isAllowLogging());
+                        model.setFormatPattern(adColumn.getFormatPattern());
+                        model.setIsRange(adColumn.isRange());
+                        model.setIsAllowCopy(adColumn.isAllowCopy());
+
+                        if (model.getAD_Reference_Value_ID() > 0){
+                            if (this.hashReferencias.containsKey(adColumn.getAD_Reference_Value_ID())){
+                                model.setAD_Reference_Value_ID(this.hashReferencias.get(adColumn.getAD_Reference_Value_ID()));
+                            }
+                            else {
+                                model.setAD_Reference_Value_ID(adColumn.getAD_Reference_Value_ID());
+                            }
+                        }
+
+                        if (model.getAD_Val_Rule_ID() > 0){
+                            if (this.hashValidaciones.containsKey(adColumn.getAD_Val_Rule_ID())){
+                                model.setAD_Val_Rule_ID(this.hashValidaciones.get(adColumn.getAD_Val_Rule_ID()));
+                            }
+                            else {
+                                model.setAD_Val_Rule_ID(adColumn.getAD_Val_Rule_ID());
+                            }
+                        }
+
+                        model.saveEx();
+
+                        // Sincronizo columna con DB
+                        model.syncDatabase();
+
+                        // Guardo ID del objeto creado en linea de migración.
+                        sysMigracionLin.setDestino_ID(adColumnIDAux);
+                    }
+
+                    sysMigracionLin.saveEx();
+                }
+                else {
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new MColumn(getCtx(), sysMigracionLin.getDestino_ID(), get_TrxName());
+                }
+
+                if ((model == null) || (model.get_ID() <= 0)){
+                    throw new AdempiereException("No se pudo importar : " + X_AD_Column.Table_Name + " - " + adColumn.get_ID());
+                }
+
+                // Agrego asociación de ID origen con ID destino
+                this.hashColumnas.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
+
+                // Si importa traduccion
+                if (importTraduccion){
+                    // Lo hago
+                    this.importTraducciones(X_AD_Column.Table_Name, model.get_ID(), adColumn.getTraduccionList());
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Importo Referencias de Lista en base destino.
+     * Xpande. Created by Gabriel Vila on 11/3/19.
+     */
+    private void importReferenciasLista() {
+
+        try{
+
+            for (ADRef_List adRefList: this.cabezalMigracion.getRefListList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Ref_List.Table_ID, adRefList.get_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        continue;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                X_AD_Ref_List model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Si no encuentro ID del padre en hash, salgo con error.
+                    if (!this.hashReferencias.containsKey(adRefList.getParentID())){
+                        throw new AdempiereException("No se pudo obtener padre desde hash para : " + X_AD_Ref_List.Table_Name + " - " + adRefList.get_ID());
+                    }
+
+                    // Creo nuevo modelo de objeto
+                    model = new X_AD_Ref_List(getCtx(), 0, get_TrxName());
+                    model.setAD_Org_ID(0);
+                    model.setAD_Reference_ID(this.hashReferencias.get(adRefList.getParentID()));
+                    model.setValue(adRefList.getValue());
+                    model.setName(adRefList.getName());
+                    model.setDescription(adRefList.getDescription());
+                    model.setValidFrom(adRefList.getValidFrom());
+                    model.setValidTo(adRefList.getValidTo());
+                    model.setEntityType(adRefList.getEntityType());
+                    model.saveEx();
+
+                    // Guardo ID del objeto creado en linea de migración.
+                    sysMigracionLin.setDestino_ID(model.get_ID());
+                    sysMigracionLin.saveEx();
+                }
+                else {
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new X_AD_Ref_List(getCtx(), sysMigracionLin.getDestino_ID(), get_TrxName());
+                }
+
+                if ((model == null) || (model.get_ID() <= 0)){
+                    throw new AdempiereException("No se pudo importar : " + X_AD_Ref_List.Table_Name + " - " + adRefList.get_ID());
+                }
+
+                // Si importa traduccion
+                if (importTraduccion){
+                    // Lo hago
+                    this.importTraducciones(X_AD_Ref_List.Table_Name, model.get_ID(), adRefList.getTraduccionList());
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Importo Referencias de Tabla en base destino.
+     * Xpande. Created by Gabriel Vila on 11/3/19.
+     */
+    private void importReferenciasTabla() {
+
+        String sql = null;
+
+        try{
+
+            for (ADRef_Table adRefTable: this.cabezalMigracion.getRefTableList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Ref_Table.Table_ID, adRefTable.getAD_Reference_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        continue;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                X_AD_Ref_Table model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Si no encuentro ID del padre en hash, salgo con error.
+                    if (!this.hashReferencias.containsKey(adRefTable.getParentID())){
+                        throw new AdempiereException("No se pudo obtener padre desde hash para : " + X_AD_Ref_Table.Table_Name + " - " + adRefTable.getAD_Reference_ID());
+                    }
+
+                    // Busco tabla destino de esta referencia
+                    sql = " select ad_table_id from ad_table where tablename='" + adRefTable.getNombreTabla() + "'";
+                    int adTableIDAux = DB.getSQLValueEx(get_TrxName(), sql);
+                    if (adTableIDAux <= 0){
+                        throw new AdempiereException("No se pudo obtener Tabla para : " + X_AD_Ref_Table.Table_Name + " - " + adRefTable.getAD_Reference_ID());
+                    }
+
+                    // Busco columna key destino de esta referencia
+                    int adColKeyIDAux = 0;
+                    if ((adRefTable.getNombreColKey() != null) && (!adRefTable.getNombreColKey().trim().equalsIgnoreCase(""))){
+                        sql = " select ad_column_id from ad_column where ad_table_id =" + adTableIDAux + " and columnname='" + adRefTable.getNombreColKey() + "'";
+                        adColKeyIDAux = DB.getSQLValueEx(get_TrxName(), sql);
+                        if (adColKeyIDAux <= 0){
+                            throw new AdempiereException("No se pudo obtener Columna Kay para : " + X_AD_Ref_Table.Table_Name + " - " + adRefTable.getAD_Reference_ID());
+                        }
+                    }
+
+                    // Busco columna display destino de esta referencia
+                    int adColDisplayIDAux = 0;
+                    if ((adRefTable.getNombreColDisplay() != null) && (!adRefTable.getNombreColDisplay().trim().equalsIgnoreCase(""))){
+                        sql = " select ad_column_id from ad_column where ad_table_id =" + adTableIDAux + " and columnname='" + adRefTable.getNombreColDisplay() + "'";
+                        adColDisplayIDAux = DB.getSQLValueEx(get_TrxName(), sql);
+                        if (adColDisplayIDAux <= 0){
+                            throw new AdempiereException("No se pudo obtener Columna Display para : " + X_AD_Ref_Table.Table_Name + " - " + adRefTable.getAD_Reference_ID());
+                        }
+                    }
+
+                    // Busco ventana destino de esta referencia
+                    int adWindowIDAux = 0;
+                    if ((adRefTable.getNombreVentana() != null) && (!adRefTable.getNombreVentana().trim().equalsIgnoreCase(""))){
+                        sql = " select ad_window_id from ad_window where name='" + adRefTable.getNombreVentana() + "'";
+                        adWindowIDAux = DB.getSQLValueEx(get_TrxName(), sql);
+                    }
+
+                    // Creo nuevo modelo de objeto
+                    model = new X_AD_Ref_Table(getCtx(), 0, get_TrxName());
+                    model.setAD_Org_ID(0);
+                    model.setAD_Reference_ID(this.hashReferencias.get(adRefTable.getParentID()));
+                    model.setAD_Table_ID(adTableIDAux);
+
+                    if (adColKeyIDAux > 0){
+                        model.setAD_Key(adColKeyIDAux);
+                    }
+
+                    if (adColDisplayIDAux > 0){
+                        model.setAD_Display(adColDisplayIDAux);
+                    }
+
+                    model.setIsValueDisplayed(adRefTable.isValueDisplayed());
+                    model.setWhereClause(adRefTable.getWhereClause());
+                    model.setOrderByClause(adRefTable.getOrderByClause());
+                    model.setEntityType(adRefTable.getEntityType());
+
+                    if (adWindowIDAux > 0){
+                        model.setAD_Window_ID(adWindowIDAux);
+                    }
+
+                    model.setIsAlert(adRefTable.isAlert());
+                    model.setDisplaySQL(adRefTable.getDisplaySQL());
+                    model.setIsDisplayIdentifier(adRefTable.isDisplayIdentifier());
+                    model.saveEx();
+                }
+            }
         }
         catch (Exception e){
             throw new AdempiereException(e);
@@ -3466,4 +4094,25 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
         return model;
     }
+
+    /***
+     * Obtiene y retorna linea segun tabla, registro e id del padre.
+     * Xpande. Created by Gabriel Vila on 10/31/19.
+     * @param adTableID
+     * @param recordID
+     * @param parentID
+     * @return
+     */
+    private MZSysMigracionLin getLineByTableRecordParent(int adTableID, int recordID, int parentID){
+
+        String whereClause = X_Z_Sys_MigracionLin.COLUMNNAME_Z_Sys_Migracion_ID + " =" + this.get_ID() +
+                " AND " + X_Z_Sys_MigracionLin.COLUMNNAME_AD_Table_ID + " =" + adTableID +
+                " AND " + X_Z_Sys_MigracionLin.COLUMNNAME_Record_ID + " =" + recordID +
+                " AND " + X_Z_Sys_MigracionLin.COLUMNNAME_Parent_ID + " =" + parentID;
+
+        MZSysMigracionLin model = new Query(getCtx(), I_Z_Sys_MigracionLin.Table_Name, whereClause, get_TrxName()).first();
+
+        return model;
+    }
+
 }

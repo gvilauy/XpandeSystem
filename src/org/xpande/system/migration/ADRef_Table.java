@@ -105,6 +105,57 @@ public class ADRef_Table extends PO implements I_AD_Ref_Table, I_Persistent
 
 	// Fin Xpande
 
+	// Xpande. Gabriel Vila. 04/11/2019.
+	// Atributos para poder identificar datos de la referencia de tabla
+	private String nombreReferencia = null;
+	private String nombreTabla = null;
+	private String nombreColKey = null;
+	private String nombreColDisplay = null;
+	private String nombreVentana = null;
+
+	public String getNombreReferencia() {
+		return nombreReferencia;
+	}
+
+	public void setNombreReferencia(String nombreReferencia) {
+		this.nombreReferencia = nombreReferencia;
+	}
+
+	public String getNombreTabla() {
+		return nombreTabla;
+	}
+
+	public void setNombreTabla(String nombreTabla) {
+		this.nombreTabla = nombreTabla;
+	}
+
+	public String getNombreColKey() {
+		return nombreColKey;
+	}
+
+	public void setNombreColKey(String nombreColKey) {
+		this.nombreColKey = nombreColKey;
+	}
+
+	public String getNombreColDisplay() {
+		return nombreColDisplay;
+	}
+
+	public void setNombreColDisplay(String nombreColDisplay) {
+		this.nombreColDisplay = nombreColDisplay;
+	}
+
+	public String getNombreVentana() {
+		return nombreVentana;
+	}
+
+	public void setNombreVentana(String nombreVentana) {
+		this.nombreVentana = nombreVentana;
+	}
+
+	// Fin Xpande
+
+
 	/** AccessLevel
       * @return 4 - System 
       */
