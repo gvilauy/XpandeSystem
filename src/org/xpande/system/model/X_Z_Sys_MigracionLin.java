@@ -31,7 +31,7 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20191030L;
+	private static final long serialVersionUID = 20191105L;
 
     /** Standard Constructor */
     public X_Z_Sys_MigracionLin (Properties ctx, int Z_Sys_MigracionLin_ID, String trxName)
@@ -194,6 +194,23 @@ public class X_Z_Sys_MigracionLin extends PO implements I_Z_Sys_MigracionLin, I_
 			return "Y".equals(oo);
 		}
 		return false;
+	}
+
+	/** Set Message.
+		@param Message 
+		EMail Message
+	  */
+	public void setMessage (String Message)
+	{
+		set_Value (COLUMNNAME_Message, Message);
+	}
+
+	/** Get Message.
+		@return EMail Message
+	  */
+	public String getMessage () 
+	{
+		return (String)get_Value(COLUMNNAME_Message);
 	}
 
 	/** Set Name.

@@ -157,6 +157,19 @@ public interface I_Z_Sys_MigracionLin
 	/** Get Selected	  */
 	public boolean isSelected();
 
+    /** Column name Message */
+    public static final String COLUMNNAME_Message = "Message";
+
+	/** Set Message.
+	  * EMail Message
+	  */
+	public void setMessage(String Message);
+
+	/** Get Message.
+	  * EMail Message
+	  */
+	public String getMessage();
+
     /** Column name Name */
     public static final String COLUMNNAME_Name = "Name";
 
