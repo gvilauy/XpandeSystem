@@ -33,6 +33,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
     private HashMap<Integer, Integer> hashElementos = new HashMap<Integer, Integer>();
     private HashMap<Integer, Integer> hashTablas = new HashMap<Integer, Integer>();
     private HashMap<Integer, Integer> hashColumnas = new HashMap<Integer, Integer>();
+    private HashMap<Integer, Integer> hashProcesos = new HashMap<Integer, Integer>();
+    private HashMap<Integer, Integer> hashVistaInf = new HashMap<Integer, Integer>();
 
     public MZSysMigracion(Properties ctx, int Z_Sys_Migracion_ID, String trxName) {
         super(ctx, Z_Sys_Migracion_ID, trxName);
@@ -3261,17 +3263,18 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             // Importo Tablas
             this.importTablas();
 
+            // Importo vistas de informes
+            this.importVistaInformes();
+
+            // Importo Procesos
+            this.importProcesos();
+
+            // Importo Parametros de Procesos
+            this.importProcesosParam();
+
             // Importo Columnas
             this.importColumnas();
 
-            // Exporto Procesos
-            //this.exportProcesos();
-
-            // Exporto Parametros de Procesos
-            //this.exportProcesosParam();
-
-            // Export vistas de informes
-            //this.exportVistaInformes();
 
             // Exporto Ventanas
             //this.exportVentanas();
@@ -3383,6 +3386,127 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             throw new AdempiereException(e);
         }
     }
+
+
+    /***
+     * Importo vistas de informe en base destino.
+     * Xpande. Created by Gabriel Vila on 11/7/19.
+     */
+    private void importVistaInformes(){
+
+        try{
+
+            this.hashVistaInf = new HashMap<Integer, Integer>();
+
+            for (ADReportView adReportView: this.cabezalMigracion.getReportViewList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_ReportView.Table_ID, adReportView.get_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        continue;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                X_AD_ReportView model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Creo nuevo modelo de objeto
+                    model = new X_AD_ReportView(getCtx(), 0, null);
+                    model.setAD_Org_ID(0);
+                    model.setName(adReportView.getName());
+                    model.setDescription(adReportView.getDescription());
+                    model.setWhereClause(adReportView.getWhereClause());
+                    model.setOrderByClause(adReportView.getOrderByClause());
+                    model.setEntityType(adReportView.getEntityType());
+                    model.setPrintName(adReportView.getPrintName());
+                    model.setIsCentrallyMaintained(adReportView.isCentrallyMaintained());
+
+                    if (this.hashTablas.containsKey(adReportView.getAD_Table_ID())){
+                        model.setAD_Table_ID(this.hashReferencias.get(adReportView.getAD_Table_ID()));
+                    }
+                    else {
+                        model.setAD_Table_ID(adReportView.getAD_Table_ID());
+                    }
+
+                    model.saveEx();
+
+                    // Guardo ID del objeto creado en linea de migración.
+                    sysMigracionLin.setDestino_ID(model.get_ID());
+                    sysMigracionLin.setExisteItem(true);
+
+                }
+                else {
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new X_AD_ReportView(getCtx(), sysMigracionLin.getDestino_ID(), null);
+
+                    if ((model == null) || (model.get_ID() <= 0)){
+                        sysMigracionLin.setMessage("No se pudo importar : " + X_AD_ReportView.Table_Name + " - " + adReportView.get_ID());
+                        sysMigracionLin.saveEx();
+                        continue;
+                    }
+
+                    // Modifico atributos
+                    model.setDescription(adReportView.getDescription());
+                    model.setWhereClause(adReportView.getWhereClause());
+                    model.setOrderByClause(adReportView.getOrderByClause());
+                    model.setEntityType(adReportView.getEntityType());
+                    model.setPrintName(adReportView.getPrintName());
+                    model.setIsCentrallyMaintained(adReportView.isCentrallyMaintained());
+
+                    if (this.hashTablas.containsKey(adReportView.getAD_Table_ID())){
+                        model.setAD_Table_ID(this.hashReferencias.get(adReportView.getAD_Table_ID()));
+                    }
+                    else {
+                        model.setAD_Table_ID(adReportView.getAD_Table_ID());
+                    }
+
+                    model.saveEx();
+                }
+
+                sysMigracionLin.setMessage("OK");
+                sysMigracionLin.saveEx();
+
+                // Agrego asociación de ID origen con ID destino
+                this.hashVistaInf.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
+
+                // Si importa traduccion
+                if (importTraduccion){
+                    // Lo hago
+                    this.importTraducciones(X_AD_ReportView.Table_Name, model.get_ID(), adReportView.getTraduccionList());
+                }
+
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
 
     /***
      * Importo Referencias en base destino.
@@ -3722,7 +3846,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 // Si importa traduccion
                 if (importTraduccion){
                     // Lo hago
-                    this.importTraducciones(X_AD_Tab.Table_Name, model.get_ID(), adTable.getTraduccionList());
+                    this.importTraducciones(X_AD_Table.Table_Name, model.get_ID(), adTable.getTraduccionList());
                 }
             }
         }
@@ -3730,6 +3854,277 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             throw new AdempiereException(e);
         }
     }
+
+    /***
+     * Importo Procesos en base destino.
+     * Xpande. Created by Gabriel Vila on 11/4/19.
+     */
+    private void importProcesos() {
+
+        try{
+
+            this.hashProcesos = new HashMap<Integer, Integer>();
+
+            for (ADProcess adProcess: this.cabezalMigracion.getProcessList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Process.Table_ID, adProcess.get_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        continue;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                MProcess model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Creo nuevo modelo de objeto
+                    model = new MProcess(getCtx(), 0, null);
+                    model.setAD_Org_ID(0);
+                    model.setValue(adProcess.getValue());
+                    model.setName(adProcess.getName());
+                    model.setDescription(adProcess.getDescription());
+                    model.setHelp(adProcess.getHelp());
+                    model.setAccessLevel(adProcess.getAccessLevel());
+                    model.setEntityType(adProcess.getEntityType());
+                    model.setProcedureName(adProcess.getProcedureName());
+                    model.setIsReport(adProcess.isReport());
+                    model.setIsDirectPrint(adProcess.isDirectPrint());
+                    model.setClassname(adProcess.getClassname());
+                    model.setWorkflowValue(adProcess.getWorkflowValue());
+                    model.setIsBetaFunctionality(adProcess.isBetaFunctionality());
+                    model.setIsServerProcess(adProcess.isServerProcess());
+                    model.setShowHelp(adProcess.getShowHelp());
+                    model.setJasperReport(adProcess.getJasperReport());
+
+                    if (adProcess.getAD_ReportView_ID() > 0){
+                        if (this.hashVistaInf.containsKey(adProcess.getAD_ReportView_ID())){
+                            model.setAD_ReportView_ID(this.hashVistaInf.get(adProcess.getAD_ReportView_ID()));
+                        }
+                        else {
+                            model.setAD_ReportView_ID(adProcess.getAD_ReportView_ID());
+                        }
+                    }
+
+                    if (adProcess.getAD_Browse_ID() > 0){
+                        model.setAD_Browse_ID(adProcess.getAD_Browse_ID());
+                    }
+
+                    if (adProcess.getAD_Form_ID() > 0){
+                        model.setAD_Form_ID(adProcess.getAD_Form_ID());
+                    }
+
+                    if (adProcess.getAD_Workflow_ID() > 0){
+                        model.setAD_Workflow_ID(adProcess.getAD_Workflow_ID());
+                    }
+
+                    if (adProcess.getAD_PrintFormat_ID() > 0){
+                        model.setAD_PrintFormat_ID(adProcess.getAD_PrintFormat_ID());
+                    }
+
+                    model.saveEx();
+
+                    // Guardo ID del objeto creado en linea de migración.
+                    sysMigracionLin.setDestino_ID(model.get_ID());
+                    sysMigracionLin.setExisteItem(true);
+                }
+                else {
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new MProcess(getCtx(), sysMigracionLin.getDestino_ID(), null);
+
+                    if ((model == null) || (model.get_ID() <= 0)){
+                        sysMigracionLin.setMessage("No se pudo importar : " + X_AD_Process.Table_Name + " - " + adProcess.get_ID());
+                        sysMigracionLin.saveEx();
+                        continue;
+                    }
+
+                    model.setDescription(adProcess.getDescription());
+                    model.setHelp(adProcess.getHelp());
+                    model.setAccessLevel(adProcess.getAccessLevel());
+                    model.setEntityType(adProcess.getEntityType());
+                    model.setProcedureName(adProcess.getProcedureName());
+                    model.setIsReport(adProcess.isReport());
+                    model.setIsDirectPrint(adProcess.isDirectPrint());
+                    model.setClassname(adProcess.getClassname());
+                    model.setWorkflowValue(adProcess.getWorkflowValue());
+                    model.setIsBetaFunctionality(adProcess.isBetaFunctionality());
+                    model.setIsServerProcess(adProcess.isServerProcess());
+                    model.setShowHelp(adProcess.getShowHelp());
+                    model.setJasperReport(adProcess.getJasperReport());
+
+                    if (adProcess.getAD_ReportView_ID() > 0){
+                        if (this.hashVistaInf.containsKey(adProcess.getAD_ReportView_ID())){
+                            model.setAD_ReportView_ID(this.hashVistaInf.get(adProcess.getAD_ReportView_ID()));
+                        }
+                        else {
+                            model.setAD_ReportView_ID(adProcess.getAD_ReportView_ID());
+                        }
+                    }
+
+                    if (adProcess.getAD_Browse_ID() > 0){
+                        model.setAD_Browse_ID(adProcess.getAD_Browse_ID());
+                    }
+
+                    if (adProcess.getAD_Form_ID() > 0){
+                        model.setAD_Form_ID(adProcess.getAD_Form_ID());
+                    }
+
+                    if (adProcess.getAD_Workflow_ID() > 0){
+                        model.setAD_Workflow_ID(adProcess.getAD_Workflow_ID());
+                    }
+
+                    if (adProcess.getAD_PrintFormat_ID() > 0){
+                        model.setAD_PrintFormat_ID(adProcess.getAD_PrintFormat_ID());
+                    }
+                    model.saveEx();
+                }
+
+                sysMigracionLin.setMessage("OK");
+                sysMigracionLin.saveEx();
+
+                // Agrego asociación de ID origen con ID destino
+                this.hashProcesos.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
+
+                // Si importa traduccion
+                if (importTraduccion){
+                    // Lo hago
+                    this.importTraducciones(X_AD_Process.Table_Name, model.get_ID(), adProcess.getTraduccionList());
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+
+    /***
+     * Importo Parametros de Procesos en base destino.
+     * Xpande. Created by Gabriel Vila on 11/7/19.
+     */
+    private void importProcesosParam() {
+
+        try{
+
+            for (ADProcessPara adProcessPara: this.cabezalMigracion.getProcessParaList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Process_Para.Table_ID, adProcessPara.get_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        continue;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                MProcessPara model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Creo nuevo modelo de objeto
+                    model = new MProcessPara(getCtx(), 0, null);
+                    model.setAD_Org_ID(0);
+                    model.setName(adProcessPara.getName());
+                    model.setDescription(adProcessPara.getDescription());
+                    model.setHelp(adProcessPara.getHelp());
+                    model.setSeqNo(adProcessPara.getSeqNo());
+                    model.setAD_Reference_ID(adProcessPara.getAD_Reference_ID());
+                    model.setColumnName(adProcessPara.getColumnName());
+                    model.setIsCentrallyMaintained(adProcessPara.isCentrallyMaintained());
+                    model.setFieldLength(adProcessPara.getFieldLength());
+                    model.setIsMandatory(adProcessPara.isMandatory());
+                    model.setIsRange(adProcessPara.isRange());
+                    model.setDefaultValue(adProcessPara.getDefaultValue());
+                    model.setDefaultValue2(adProcessPara.getDefaultValue2());
+                    model.setVFormat(adProcessPara.getVFormat());
+
+                    // Falta ad_reference_value_id, ad_val_rule_id
+
+                    if (this.hashProcesos.containsKey(adProcessPara.getAD_Process_ID())){
+                        model.setAD_Process_ID(this.hashVistaInf.get(adProcessPara.getAD_Process_ID()));
+                    }
+                    else {
+                        model.setAD_Process_ID(adProcessPara.getAD_Process_ID());
+                    }
+
+                    model.saveEx();
+
+                    // Guardo ID del objeto creado en linea de migración.
+                    sysMigracionLin.setDestino_ID(model.get_ID());
+                    sysMigracionLin.setExisteItem(true);
+                }
+                else {
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new MProcessPara(getCtx(), sysMigracionLin.getDestino_ID(), null);
+
+                    if ((model == null) || (model.get_ID() <= 0)){
+                        sysMigracionLin.setMessage("No se pudo importar : " + X_AD_Process_Para.Table_Name + " - " + adProcessPara.get_ID());
+                        sysMigracionLin.saveEx();
+                        continue;
+                    }
+
+                    model.saveEx();
+                }
+
+                sysMigracionLin.setMessage("OK");
+                sysMigracionLin.saveEx();
+
+                // Si importa traduccion
+                if (importTraduccion){
+                    // Lo hago
+                    this.importTraducciones(X_AD_Process_Para.Table_Name, model.get_ID(), adProcessPara.getTraduccionList());
+                }
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
 
     /***
      * Importo Columnas de tablas en base destino.
@@ -3826,7 +4221,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         model.setIsAllowCopy(adColumn.isAllowCopy());
                         model.setSeqNo(adColumn.getSeqNo());
 
-                        if (model.getAD_Reference_Value_ID() > 0){
+                        if (adColumn.getAD_Reference_Value_ID() > 0){
                             if (this.hashReferencias.containsKey(adColumn.getAD_Reference_Value_ID())){
                                 model.setAD_Reference_Value_ID(this.hashReferencias.get(adColumn.getAD_Reference_Value_ID()));
                             }
@@ -3835,7 +4230,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                             }
                         }
 
-                        if (model.getAD_Val_Rule_ID() > 0){
+                        if (adColumn.getAD_Val_Rule_ID() > 0){
                             if (this.hashValidaciones.containsKey(adColumn.getAD_Val_Rule_ID())){
                                 model.setAD_Val_Rule_ID(this.hashValidaciones.get(adColumn.getAD_Val_Rule_ID()));
                             }
@@ -3909,7 +4304,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         model.setIsRange(adColumn.isRange());
                         model.setIsAllowCopy(adColumn.isAllowCopy());
 
-                        if (model.getAD_Reference_Value_ID() > 0){
+                        if (adColumn.getAD_Reference_Value_ID() > 0){
                             if (this.hashReferencias.containsKey(adColumn.getAD_Reference_Value_ID())){
                                 model.setAD_Reference_Value_ID(this.hashReferencias.get(adColumn.getAD_Reference_Value_ID()));
                             }
@@ -3918,7 +4313,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                             }
                         }
 
-                        if (model.getAD_Val_Rule_ID() > 0){
+                        if (adColumn.getAD_Val_Rule_ID() > 0){
                             if (this.hashValidaciones.containsKey(adColumn.getAD_Val_Rule_ID())){
                                 model.setAD_Val_Rule_ID(this.hashValidaciones.get(adColumn.getAD_Val_Rule_ID()));
                             }
@@ -3992,7 +4387,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setIsRange(adColumn.isRange());
                     model.setIsAllowCopy(adColumn.isAllowCopy());
 
-                    if (model.getAD_Reference_Value_ID() > 0){
+                    if (adColumn.getAD_Reference_Value_ID() > 0){
                         if (this.hashReferencias.containsKey(adColumn.getAD_Reference_Value_ID())){
                             model.setAD_Reference_Value_ID(this.hashReferencias.get(adColumn.getAD_Reference_Value_ID()));
                         }
@@ -4001,7 +4396,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         }
                     }
 
-                    if (model.getAD_Val_Rule_ID() > 0){
+                    if (adColumn.getAD_Val_Rule_ID() > 0){
                         if (this.hashValidaciones.containsKey(adColumn.getAD_Val_Rule_ID())){
                             model.setAD_Val_Rule_ID(this.hashValidaciones.get(adColumn.getAD_Val_Rule_ID()));
                         }
