@@ -38,6 +38,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
     private HashMap<Integer, Integer> hashVistaInf = new HashMap<Integer, Integer>();
     private HashMap<Integer, Integer> hashVentanas = new HashMap<Integer, Integer>();
     private HashMap<Integer, Integer> hashPestanias = new HashMap<Integer, Integer>();
+    private HashMap<Integer, Integer> hashFieldGroups = new HashMap<Integer, Integer>();
 
     public MZSysMigracion(Properties ctx, int Z_Sys_Migracion_ID, String trxName) {
         super(ctx, Z_Sys_Migracion_ID, trxName);
@@ -354,6 +355,12 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 this.setValidacionLin(valRule, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_FIELD, field.getName(), field.get_ID());
             }
 
+            // Si tengo grupo de field asociado, lo proceso
+            if (field.getAD_FieldGroup_ID() > 0){
+                X_AD_FieldGroup fieldGroup = new X_AD_FieldGroup(getCtx(), field.getAD_FieldGroup_ID(), null);
+                this.setFieldGroupLin(fieldGroup, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_FIELD, field.getName(), field.get_ID());
+            }
+
         }
         catch (Exception e){
             throw new AdempiereException(e);
@@ -429,6 +436,50 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             sysMigracionLin.setStartDate(valRule.getUpdated());
             sysMigracionLin.setVersionNo(valRule.get_ValueAsString("VersionNo"));
             sysMigracionLin.setEntityType(valRule.getEntityType());
+            sysMigracionLin.setIsSelected(true);
+            sysMigracionLin.setExisteItem(false);
+
+            if (parentType != null) sysMigracionLin.setTipoSysMigraObjFrom(parentType);
+            if (parentName != null) sysMigracionLin.setParentName(parentName);
+            if (parentID > 0) sysMigracionLin.setParent_ID(parentID);
+
+            sysMigracionLin.saveEx();
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Setea linea de este documento con datos de una field group del diccionario.
+     * Xpande. Created by Gabriel Vila on 11/12/19.
+     * @param fieldGroup
+     * @param parentType
+     * @param parentName
+     * @param parentID
+     */
+    private void setFieldGroupLin(X_AD_FieldGroup fieldGroup, String parentType, String parentName, int parentID){
+
+        try{
+            if (!this.isDictionary()){
+                if (fieldGroup.getEntityType().equalsIgnoreCase(X_AD_FieldGroup.ENTITYTYPE_Dictionary)){
+                    return;
+                }
+            }
+
+            if (this.existeTablaRecord(I_AD_FieldGroup.Table_ID, fieldGroup.get_ID())){
+                return;
+            }
+
+            MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+            sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+            sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_FIELDGROUP);
+            sysMigracionLin.setName(fieldGroup.getName());
+            sysMigracionLin.setAD_Table_ID(I_AD_FieldGroup.Table_ID);
+            sysMigracionLin.setRecord_ID(fieldGroup.get_ID());
+            sysMigracionLin.setStartDate(fieldGroup.getUpdated());
+            sysMigracionLin.setVersionNo(fieldGroup.get_ValueAsString("VersionNo"));
+            sysMigracionLin.setEntityType(fieldGroup.getEntityType());
             sysMigracionLin.setIsSelected(true);
             sysMigracionLin.setExisteItem(false);
 
@@ -1175,6 +1226,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             // Exporto Pestañás
             this.exportTabs();
 
+            // Exporto Field Groups
+            this.exportFieldGroups();
+
             // Exporto Fields
             this.exportFields();
 
@@ -1232,6 +1286,49 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             rs = null; pstmt = null;
         }
     }
+
+    /***
+     * Agrega field groups seleccionadas para exportar, en este modelo.
+     * Xpande. Created by Gabriel Vila on 11/12/19.
+     */
+    private void exportFieldGroups() {
+
+        String sql = "";
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try{
+            sql = " select record_id as ad_fieldgroup_id, TipoSysMigraObjFrom, parentName, parent_ID " +
+                    " from z_sys_migracionlin " +
+                    " where z_sys_migracion_id = " + this.get_ID() +
+                    " and ad_table_id =" + I_AD_FieldGroup.Table_ID +
+                    " and isselected ='Y'" +
+                    " order by created ";
+
+            pstmt = DB.prepareStatement(sql, get_TrxName());
+            rs = pstmt.executeQuery();
+
+            while(rs.next()){
+                ADFieldGroup fieldGroup = new ADFieldGroup(getCtx(), rs.getInt("ad_fieldgroup_id"), null);
+                fieldGroup.setParentType(rs.getString("TipoSysMigraObjFrom"));
+                fieldGroup.setParentName(rs.getString("parentName"));
+                fieldGroup.setParentID(rs.getInt("parent_ID"));
+
+                List<Traduccion> traduccionList = this.getTraducciones(fieldGroup.Table_Name, fieldGroup.get_ID(), "es_MX");
+                fieldGroup.setTraduccionList(traduccionList);
+
+                this.cabezalMigracion.getFieldGroupList().add(fieldGroup);
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+        finally {
+            DB.close(rs, pstmt);
+            rs = null; pstmt = null;
+        }
+    }
+
 
     /***
      * Agrega vistas de informes seleccionadas para exportar, en este modelo.
@@ -1343,6 +1440,11 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 column.setParentType(rs.getString("TipoSysMigraObjFrom"));
                 column.setParentName(rs.getString("parentName"));
                 column.setParentID(rs.getInt("parent_ID"));
+
+                // Me aseguro columna UUID que no sea de solo lectura
+                if (column.getColumnName().equalsIgnoreCase("UUID")){
+                    column.setIsMandatory(false);
+                }
 
                 List<Traduccion> traduccionList = this.getTraducciones(column.Table_Name, column.get_ID(), "es_MX");
                 column.setTraduccionList(traduccionList);
@@ -2186,6 +2288,12 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 return message;
             }
 
+            // Obtener field groups
+            message = this.getFieldGroupsFile();
+            if (message != null){
+                return message;
+            }
+
             // Obtener fields
             message = this.getFieldsFile();
             if (message != null){
@@ -2216,6 +2324,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             this.setRefTablaDestino();
             this.setProcesosParamsDestino();
             this.setVistasInformesDestino();
+            this.setFieldGroupsDestino();
 
             // Por ahora siempre creo una nueva ventana y no hago modificaciones en las ya existentes. Prefiero una copia a romper la que existe.
             /*
@@ -2712,6 +2821,46 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
     }
 
     /***
+     * Cargo field groups del diccionario leídos previamente desde archivo de interface, en lineas de este proceso.
+     * Xpande. Created by Gabriel Vila on 9/8/19.
+     * @return
+     */
+    private String getFieldGroupsFile() {
+
+        String message = null;
+
+        try{
+            for (ADFieldGroup adFieldGroup: this.cabezalMigracion.getFieldGroupList()){
+
+                MZSysMigracionLin sysMigracionLin = new MZSysMigracionLin(getCtx(), 0, get_TrxName());
+                sysMigracionLin.setZ_Sys_Migracion_ID(this.get_ID());
+                sysMigracionLin.setTipoSysMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_FIELDGROUP);
+                sysMigracionLin.setName(adFieldGroup.getName());
+                sysMigracionLin.setAD_Table_ID(I_AD_FieldGroup.Table_ID);
+                sysMigracionLin.setRecord_ID(adFieldGroup.get_ID());
+                sysMigracionLin.setStartDate(adFieldGroup.getUpdated());
+                sysMigracionLin.setVersionNo(adFieldGroup.get_ValueAsString("VersionNo"));
+                sysMigracionLin.setEntityType(adFieldGroup.getEntityType());
+                sysMigracionLin.setIsSelected(true);
+                sysMigracionLin.setExisteItem(false);
+
+                if (adFieldGroup.getParentType() != null) sysMigracionLin.setTipoSysMigraObjFrom(adFieldGroup.getParentType());
+                if (adFieldGroup.getParentName() != null) sysMigracionLin.setParentName(adFieldGroup.getParentName());
+                if (adFieldGroup.getParentID() > 0) sysMigracionLin.setParent_ID(adFieldGroup.getParentID());
+
+                sysMigracionLin.saveEx();
+
+                adFieldGroup.setSysMigraLinID(sysMigracionLin.get_ID());
+            }
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+
+        return message;
+    }
+
+    /***
      * Verifico existencia de validaciones en base destino.
      * Xpande. Created by Gabriel Vila on 10/30/19.
      * @return
@@ -2730,6 +2879,35 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     X_AD_Val_Rule valRuleDB = new X_AD_Val_Rule(getCtx(), itemIDs[0], null);
                     sysMigracionLin.setExisteItem(true);
                     sysMigracionLin.setDestino_ID(valRuleDB.get_ID());
+                    sysMigracionLin.saveEx();
+                }
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Verifico existencia de field groups en base destino.
+     * Xpande. Created by Gabriel Vila on 10/30/19.
+     * @return
+     */
+    private void setFieldGroupsDestino(){
+
+        try{
+
+            List<MZSysMigracionLin> sysMigracionLinList = this.getLinesByTipoMigraObj(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_FIELDGROUP);
+
+            for (MZSysMigracionLin sysMigracionLin: sysMigracionLinList){
+
+                // Verifico si existe item en la base destino
+                int[] itemIDs = PO.getAllIDs(X_AD_FieldGroup.Table_Name, " Name ='" + sysMigracionLin.getName() + "'", null);
+                if (itemIDs.length > 0){
+                    X_AD_FieldGroup fieldGroupDB = new X_AD_FieldGroup(getCtx(), itemIDs[0], null);
+                    sysMigracionLin.setExisteItem(true);
+                    sysMigracionLin.setDestino_ID(fieldGroupDB.get_ID());
                     sysMigracionLin.saveEx();
                 }
             }
@@ -3282,7 +3460,6 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             // Obtengo modelo con la información contenido en el archivo
             this.cabezalMigracion = (CabezalMigracion) value;
 
-
             // Importo Validaciones
             this.importValidaciones();
 
@@ -3318,6 +3495,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             // Importo Pestañás
             this.importTabs();
+
+            // Importo Field Groups
+            this.importFieldGroups();
 
             // Importo Fields
             this.importFields();
@@ -3415,6 +3595,105 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
                 // Agrego asociación de ID origen con ID destino
                 this.hashValidaciones.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
+
+            }
+
+        }
+        catch (Exception e){
+            throw new AdempiereException(e);
+        }
+    }
+
+    /***
+     * Importo field groups en base destino.
+     * Xpande. Created by Gabriel Vila on 10/31/19.
+     */
+    private void importFieldGroups() {
+
+        try{
+
+            this.hashFieldGroups = new HashMap<Integer, Integer>();
+
+            for (ADFieldGroup adFieldGroup: this.cabezalMigracion.getFieldGroupList()){
+
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_FieldGroup.Table_ID, adFieldGroup.get_ID());
+                if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
+                    continue;
+                }
+
+                if (!sysMigracionLin.isSelected()){
+                    continue;
+                }
+
+                boolean importTraduccion = false;
+                boolean importObject = false;
+
+                // Si este objeto ya existe en la base destino
+                if (sysMigracionLin.isExisteItem()){
+                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
+                    if (!this.isTranslated()){
+                        continue;
+                    }
+                    else {
+                        // Solamente sobrescribir traducciones de este objeto
+                        importObject = false;
+                        importTraduccion = true;
+                    }
+                }
+                else {
+                    importObject = true;
+                    importTraduccion = true;
+                }
+
+                X_AD_FieldGroup model = null;
+
+                // Si debo importar este objeto
+                if (importObject){
+
+                    // Creo nuevo modelo de objeto
+                    model = new X_AD_FieldGroup(getCtx(), 0, null);
+                    model.setAD_Org_ID(0);
+                    model.setName(adFieldGroup.getName());
+                    model.setEntityType(adFieldGroup.getEntityType());
+                    model.setFieldGroupType(adFieldGroup.getFieldGroupType());
+                    model.setIsCollapsedByDefault(adFieldGroup.getIsCollapsedByDefault());
+
+                    model.saveEx();
+
+                    // Guardo ID del objeto creado en linea de migración.
+                    sysMigracionLin.setDestino_ID(model.get_ID());
+                    sysMigracionLin.setExisteItem(true);
+
+                }
+                else {
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new X_AD_FieldGroup(getCtx(), sysMigracionLin.getDestino_ID(), null);
+
+                    if ((model == null) || (model.get_ID() <= 0)){
+                        sysMigracionLin.setMessage("No se pudo importar : " + X_AD_FieldGroup.Table_Name + " - " + adFieldGroup.get_ID());
+                        sysMigracionLin.saveEx();
+                        continue;
+                    }
+
+                    // Modifico atributos
+                    model.setEntityType(adFieldGroup.getEntityType());
+                    model.setFieldGroupType(adFieldGroup.getFieldGroupType());
+                    model.setIsCollapsedByDefault(adFieldGroup.getIsCollapsedByDefault());
+
+                    model.saveEx();
+                }
+
+                sysMigracionLin.setMessage("OK");
+                sysMigracionLin.saveEx();
+
+                // Agrego asociación de ID origen con ID destino
+                this.hashFieldGroups.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
+
+                // Si importa traduccion
+                if (importTraduccion){
+                    // Lo hago
+                    this.importTraducciones(X_AD_FieldGroup.Table_Name, model.get_ID(), adFieldGroup.getTraduccionList());
+                }
 
             }
 
@@ -4395,7 +4674,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     }
 
                     // Included_Tab_ID No por ahora, no hace falta.
-                    // AD_FieldGroup_ID
+
+                    if (adField.getAD_FieldGroup_ID() > 0){
+                        if (this.hashFieldGroups.containsKey(adField.getAD_FieldGroup_ID())){
+                            model.setAD_FieldGroup_ID(this.hashFieldGroups.get(adField.getAD_FieldGroup_ID()).intValue());
+                        }
+                        else {
+                            model.setAD_FieldGroup_ID(adField.getAD_FieldGroup_ID());
+                        }
+                    }
 
                     if (adField.getAD_Reference_Value_ID() > 0){
                         if (this.hashReferencias.containsKey(adField.getAD_Reference_Value_ID())){
@@ -4751,6 +5038,11 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                             model.setAD_Element_ID(adColumn.getAD_Element_ID());
                         }
 
+                        // Me aseguro columna UUID que no sea de solo lectura
+                        if (model.getColumnName().equalsIgnoreCase("UUID")){
+                            model.setIsMandatory(false);
+                        }
+
                         model.saveEx();
 
                         // Sincronizo columna con DB
@@ -4814,6 +5106,11 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                             else {
                                 model.setAD_Val_Rule_ID(adColumn.getAD_Val_Rule_ID());
                             }
+                        }
+
+                        // Me aseguro columna UUID que no sea de solo lectura
+                        if (model.getColumnName().equalsIgnoreCase("UUID")){
+                            model.setIsMandatory(false);
                         }
 
                         model.saveEx();

@@ -23,6 +23,7 @@ public class CabezalMigracion {
     private List<ADProcessPara> processParaList = new ArrayList<ADProcessPara>();
     private List<ADTab> tabList = new ArrayList<ADTab>();
     private List<ADField> fieldList = new ArrayList<ADField>();
+    private List<ADFieldGroup> fieldGroupList = new ArrayList<ADFieldGroup>();
 
     public List<ADRef_Table> getRefTableList() {
         return refTableList;
@@ -126,5 +127,13 @@ public class CabezalMigracion {
 
     public void setFieldList(List<ADField> fieldList) {
         this.fieldList = fieldList;
+    }
+
+    public List<ADFieldGroup> getFieldGroupList() {
+        return fieldGroupList;
+    }
+
+    public void setFieldGroupList(List<ADFieldGroup> fieldGroupList) {
+        this.fieldGroupList = fieldGroupList;
     }
 }
