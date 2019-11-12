@@ -1904,6 +1904,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     this.cabezalMigracion.getTableList().add(adTable);
                 }
 
+                /*
                 // Recorro columnas de esta tabla para exportar
                 List<MColumn> columnList = table.getColumnsAsList();
                 for (MColumn column: columnList){
@@ -1922,6 +1923,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     }
 
                 }
+
+                 */
             }
         }
         catch (Exception e){
@@ -2049,6 +2052,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
                 this.cabezalMigracion.getWindowList().add(adWindow);
 
+                /*
                 // Recorro Tabs de este proceso para exportar
                 MWindow window = new MWindow(getCtx(), rs.getInt("ad_window_id"), null);
                 MTab[] tabList = window.getTabs(false, null);
@@ -2071,6 +2075,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         this.cabezalMigracion.getFieldList().add(adField);
                     }
                 }
+                */
+
             }
         }
         catch (Exception e){
