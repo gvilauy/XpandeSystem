@@ -122,6 +122,58 @@ public class ADProcess extends PO implements I_AD_Process, I_Persistent
 	}
 	// Fin Xpande.
 
+	// Xpande. Gabriel Vila. 12/11/2019.
+	// Para la serializacion de objetos de este type a XML, se requieren que sus atributos tengan las propiedades GET y SET.
+	// Adempiere para los atributos que empiezan con IS, no les pone el profijo GET y por lo tanto estos atributos no se serializan
+	// Agrego metodos GET para los metodos que hoy comienzan con IS...
+	public boolean getIsBetaFunctionality ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsBetaFunctionality);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsDirectPrint ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsDirectPrint);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsReport ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsReport);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsServerProcess ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsServerProcess);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	// Fin Xpande.
+
+
 	/** AccessLevel
       * @return 4 - System 
       */

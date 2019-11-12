@@ -155,6 +155,46 @@ public class ADRef_Table extends PO implements I_AD_Ref_Table, I_Persistent
 
 	// Fin Xpande
 
+	// Xpande. Gabriel Vila. 12/11/2019.
+	// Para la serializacion de objetos de este type a XML, se requieren que sus atributos tengan las propiedades GET y SET.
+	// Adempiere para los atributos que empiezan con IS, no les pone el profijo GET y por lo tanto estos atributos no se serializan
+	// Agrego metodos GET para los metodos que hoy comienzan con IS...
+	public boolean getIsAlert ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsAlert);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsDisplayIdentifier ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsDisplayIdentifier);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsValueDisplayed ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsValueDisplayed);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	// Fin Xpande.
+
 
 	/** AccessLevel
       * @return 4 - System 

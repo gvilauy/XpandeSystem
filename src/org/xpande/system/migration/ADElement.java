@@ -116,6 +116,14 @@ public class ADElement extends PO implements I_AD_Element, I_Persistent
 	}
 	// Fin Xpande.
 
+	// Xpande. Gabriel Vila. 12/11/2019.
+	// Para la serializacion de objetos de este type a XML, se requieren que sus atributos tengan las propiedades GET y SET.
+	// Adempiere para los atributos que empiezan con IS, no les pone el profijo GET y por lo tanto estos atributos no se serializan
+	// Agrego metodos GET para los metodos que hoy comienzan con IS...
+
+
+	// Fin Xpande.
+
 
 	/** AccessLevel
       * @return 4 - System 

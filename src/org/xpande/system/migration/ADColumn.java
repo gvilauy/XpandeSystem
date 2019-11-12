@@ -135,6 +135,146 @@ public class ADColumn extends PO implements I_AD_Column, I_Persistent
 	}
 	// Fin Xpande.
 
+	// Xpande. Gabriel Vila. 12/11/2019.
+	// Para la serializacion de objetos de este type a XML, se requieren que sus atributos tengan las propiedades GET y SET.
+	// Adempiere para los atributos que empiezan con IS, no les pone el profijo GET y por lo tanto estos atributos no se serializan
+	// Agrego metodos GET para los metodos que hoy comienzan con IS...
+	public boolean getIsAllowCopy ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsAllowCopy);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsAllowLogging ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsAllowLogging);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsAlwaysUpdateable ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsAlwaysUpdateable);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsAutocomplete ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsAutocomplete);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsIdentifier ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsIdentifier);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsKey ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsKey);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsMandatory ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsMandatory);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsParent ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsParent);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsRange ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsRange);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsSelectionColumn ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsSelectionColumn);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsTranslated ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsTranslated);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsUpdateable ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsUpdateable);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	// Fin Xpande.
+
+
     /** AccessLevel
       * @return 4 - System 
       */

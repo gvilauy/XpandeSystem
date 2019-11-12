@@ -125,6 +125,102 @@ public class ADTable extends PO implements I_AD_Table, I_Persistent
 	}
 	// Fin Xpande.
 
+	// Xpande. Gabriel Vila. 12/11/2019.
+	// Para la serializacion de objetos de este type a XML, se requieren que sus atributos tengan las propiedades GET y SET.
+	// Adempiere para los atributos que empiezan con IS, no les pone el profijo GET y por lo tanto estos atributos no se serializan
+	// Agrego metodos GET para los metodos que hoy comienzan con IS...
+	public boolean getIsCentrallyMaintained ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsCentrallyMaintained);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsChangeLog ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsChangeLog);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsDeleteable ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsDeleteable);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsDocument ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsDocument);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsHighVolume ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsHighVolume);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsIgnoreMigration ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsIgnoreMigration);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsSecurityEnabled ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsSecurityEnabled);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsView ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsView);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	// Fin Xpande.
+
+
 	/** AccessLevel
       * @return 4 - System 
       */

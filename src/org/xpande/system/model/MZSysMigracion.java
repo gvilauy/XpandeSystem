@@ -3480,7 +3480,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setOrderByClause(adReportView.getOrderByClause());
                     model.setEntityType(adReportView.getEntityType());
                     model.setPrintName(adReportView.getPrintName());
-                    model.setIsCentrallyMaintained(adReportView.isCentrallyMaintained());
+                    model.setIsCentrallyMaintained(adReportView.getIsCentrallyMaintained());
 
                     if (this.hashTablas.containsKey(adReportView.getAD_Table_ID())){
                         model.setAD_Table_ID(this.hashReferencias.get(adReportView.getAD_Table_ID()));
@@ -3512,7 +3512,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setOrderByClause(adReportView.getOrderByClause());
                     model.setEntityType(adReportView.getEntityType());
                     model.setPrintName(adReportView.getPrintName());
-                    model.setIsCentrallyMaintained(adReportView.isCentrallyMaintained());
+                    model.setIsCentrallyMaintained(adReportView.getIsCentrallyMaintained());
 
                     if (this.hashTablas.containsKey(adReportView.getAD_Table_ID())){
                         model.setAD_Table_ID(this.hashReferencias.get(adReportView.getAD_Table_ID()));
@@ -3829,16 +3829,16 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setDescription(adTable.getDescription());
                     model.setHelp(adTable.getHelp());
                     model.setTableName(adTable.getTableName());
-                    model.setIsView(adTable.isView());
+                    model.setIsView(adTable.getIsView());
                     model.setAccessLevel(adTable.getAccessLevel());
                     model.setEntityType(adTable.getEntityType());
-                    model.setIsSecurityEnabled(adTable.isSecurityEnabled());
-                    model.setIsDeleteable(adTable.isDeleteable());
-                    model.setIsHighVolume(adTable.isHighVolume());
-                    model.setIsChangeLog(adTable.isChangeLog());
+                    model.setIsSecurityEnabled(adTable.getIsSecurityEnabled());
+                    model.setIsDeleteable(adTable.getIsDeleteable());
+                    model.setIsHighVolume(adTable.getIsHighVolume());
+                    model.setIsChangeLog(adTable.getIsChangeLog());
                     model.setReplicationType(adTable.getReplicationType());
-                    model.setIsCentrallyMaintained(adTable.isCentrallyMaintained());
-                    model.setIsDocument(adTable.isDocument());
+                    model.setIsCentrallyMaintained(adTable.getIsCentrallyMaintained());
+                    model.setIsDocument(adTable.getIsDocument());
 
                     model.saveEx();
 
@@ -3860,16 +3860,16 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setDescription(adTable.getDescription());
                     model.setHelp(adTable.getHelp());
                     model.setTableName(adTable.getTableName());
-                    model.setIsView(adTable.isView());
+                    model.setIsView(adTable.getIsView());
                     model.setAccessLevel(adTable.getAccessLevel());
                     model.setEntityType(adTable.getEntityType());
-                    model.setIsSecurityEnabled(adTable.isSecurityEnabled());
-                    model.setIsDeleteable(adTable.isDeleteable());
-                    model.setIsHighVolume(adTable.isHighVolume());
-                    model.setIsChangeLog(adTable.isChangeLog());
+                    model.setIsSecurityEnabled(adTable.getIsSecurityEnabled());
+                    model.setIsDeleteable(adTable.getIsDeleteable());
+                    model.setIsHighVolume(adTable.getIsHighVolume());
+                    model.setIsChangeLog(adTable.getIsChangeLog());
                     model.setReplicationType(adTable.getReplicationType());
-                    model.setIsCentrallyMaintained(adTable.isCentrallyMaintained());
-                    model.setIsDocument(adTable.isDocument());
+                    model.setIsCentrallyMaintained(adTable.getIsCentrallyMaintained());
+                    model.setIsDocument(adTable.getIsDocument());
 
                     model.saveEx();
                 }
@@ -3948,12 +3948,12 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setAccessLevel(adProcess.getAccessLevel());
                     model.setEntityType(adProcess.getEntityType());
                     model.setProcedureName(adProcess.getProcedureName());
-                    model.setIsReport(adProcess.isReport());
-                    model.setIsDirectPrint(adProcess.isDirectPrint());
+                    model.setIsReport(adProcess.getIsReport());
+                    model.setIsDirectPrint(adProcess.getIsDirectPrint());
                     model.setClassname(adProcess.getClassname());
                     model.setWorkflowValue(adProcess.getWorkflowValue());
-                    model.setIsBetaFunctionality(adProcess.isBetaFunctionality());
-                    model.setIsServerProcess(adProcess.isServerProcess());
+                    model.setIsBetaFunctionality(adProcess.getIsBetaFunctionality());
+                    model.setIsServerProcess(adProcess.getIsServerProcess());
                     model.setShowHelp(adProcess.getShowHelp());
                     model.setJasperReport(adProcess.getJasperReport());
 
@@ -4003,12 +4003,12 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setAccessLevel(adProcess.getAccessLevel());
                     model.setEntityType(adProcess.getEntityType());
                     model.setProcedureName(adProcess.getProcedureName());
-                    model.setIsReport(adProcess.isReport());
-                    model.setIsDirectPrint(adProcess.isDirectPrint());
+                    model.setIsReport(adProcess.getIsReport());
+                    model.setIsDirectPrint(adProcess.getIsDirectPrint());
                     model.setClassname(adProcess.getClassname());
                     model.setWorkflowValue(adProcess.getWorkflowValue());
-                    model.setIsBetaFunctionality(adProcess.isBetaFunctionality());
-                    model.setIsServerProcess(adProcess.isServerProcess());
+                    model.setIsBetaFunctionality(adProcess.getIsBetaFunctionality());
+                    model.setIsServerProcess(adProcess.getIsServerProcess());
                     model.setShowHelp(adProcess.getShowHelp());
                     model.setJasperReport(adProcess.getJasperReport());
 
@@ -4119,13 +4119,13 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setDescription(adWindow.getDescription());
                     model.setHelp(adWindow.getHelp());
                     model.setWindowType(adWindow.getWindowType());
-                    model.setIsSOTrx(adWindow.isSOTrx());
+                    model.setIsSOTrx(adWindow.getIsSOTrx());
                     model.setEntityType(adWindow.getEntityType());
                     model.setProcessing(false);
-                    model.setIsDefault(model.isDefault());
+                    model.setIsDefault(adWindow.getIsDefault());
                     model.setWinHeight(adWindow.getWinHeight());
                     model.setWinWidth(adWindow.getWinWidth());
-                    model.setIsBetaFunctionality(adWindow.isBetaFunctionality());
+                    model.setIsBetaFunctionality(adWindow.getIsBetaFunctionality());
 
                     model.saveEx();
 
@@ -4211,20 +4211,20 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setHelp(adTab.getHelp());
                     model.setSeqNo(adTab.getSeqNo());
                     model.setTabLevel(adTab.getTabLevel());
-                    model.setIsSingleRow(adTab.isSingleRow());
-                    model.setIsInfoTab(adTab.isInfoTab());
-                    model.setIsTranslationTab(adTab.isTranslationTab());
-                    model.setIsReadOnly(adTab.isReadOnly());
-                    model.setHasTree(adTab.isHasTree());
+                    model.setIsSingleRow(adTab.getIsSingleRow());
+                    model.setIsInfoTab(adTab.getIsInfoTab());
+                    model.setIsTranslationTab(adTab.getIsTranslationTab());
+                    model.setIsReadOnly(adTab.getIsReadOnly());
+                    model.setHasTree(adTab.getIsHasTree());
                     model.setWhereClause(adTab.getWhereClause());
                     model.setOrderByClause(adTab.getOrderByClause());
                     model.setCommitWarning(adTab.getCommitWarning());
-                    model.setIsSortTab(adTab.isSortTab());
+                    model.setIsSortTab(adTab.getIsSortTab());
                     model.setEntityType(adTab.getEntityType());
                     model.setReadOnlyLogic(adTab.getReadOnlyLogic());
                     model.setDisplayLogic(adTab.getDisplayLogic());
-                    model.setIsInsertRecord(adTab.isInsertRecord());
-                    model.setIsAdvancedTab(adTab.isAdvancedTab());
+                    model.setIsInsertRecord(adTab.getIsInsertRecord());
+                    model.setIsAdvancedTab(adTab.getIsAdvancedTab());
 
                     // Included_Tab_ID No por ahora, no hace falta.
 
@@ -4369,26 +4369,26 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setName(adField.getName());
                     model.setDescription(adField.getDescription());
                     model.setHelp(adField.getHelp());
-                    model.setIsCentrallyMaintained(adField.isCentrallyMaintained());
-                    model.setIsDisplayed(adField.isDisplayed());
+                    model.setIsCentrallyMaintained(adField.getIsCentrallyMaintained());
+                    model.setIsDisplayed(adField.getIsDisplayed());
                     model.setDisplayLogic(adField.getDisplayLogic());
                     model.setDisplayLength(adField.getDisplayLength());
-                    model.setIsReadOnly(adField.isReadOnly());
+                    model.setIsReadOnly(adField.getIsReadOnly());
                     model.setSeqNo(adField.getSeqNo());
                     model.setSortNo(adField.getSortNo());
-                    model.setIsSameLine(adField.isSameLine());
-                    model.setIsHeading(adField.isHeading());
-                    model.setIsFieldOnly(adField.isFieldOnly());
-                    model.setIsEncrypted(adField.isEncrypted());
+                    model.setIsSameLine(adField.getIsSameLine());
+                    model.setIsHeading(adField.getIsHeading());
+                    model.setIsFieldOnly(adField.getIsFieldOnly());
+                    model.setIsEncrypted(adField.getIsEncrypted());
                     model.setEntityType(adField.getEntityType());
                     model.setObscureType(adField.getObscureType());
                     model.setIsMandatory(adField.getIsMandatory());
                     model.setDefaultValue(adField.getDefaultValue());
                     model.setInfoFactoryClass(adField.getInfoFactoryClass());
                     model.setPreferredWidth(adField.getPreferredWidth());
-                    model.setIsDisplayedGrid(adField.isDisplayedGrid());
+                    model.setIsDisplayedGrid(adField.getIsDisplayedGrid());
                     model.setSeqNoGrid(adField.getSeqNoGrid());
-                    model.setIsAllowCopy(adField.isAllowCopy());
+                    model.setIsAllowCopy(adField.getIsAllowCopy());
 
                     if (adField.getAD_Reference_ID() > 0){
                         model.setAD_Reference_ID(adField.getAD_Reference_ID());
@@ -4506,10 +4506,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setSeqNo(adProcessPara.getSeqNo());
                     model.setAD_Reference_ID(adProcessPara.getAD_Reference_ID());
                     model.setColumnName(adProcessPara.getColumnName());
-                    model.setIsCentrallyMaintained(adProcessPara.isCentrallyMaintained());
+                    model.setIsCentrallyMaintained(adProcessPara.getIsCentrallyMaintained());
                     model.setFieldLength(adProcessPara.getFieldLength());
-                    model.setIsMandatory(adProcessPara.isMandatory());
-                    model.setIsRange(adProcessPara.isRange());
+                    model.setIsMandatory(adProcessPara.getIsMandatory());
+                    model.setIsRange(adProcessPara.getIsRange());
                     model.setDefaultValue(adProcessPara.getDefaultValue());
                     model.setDefaultValue2(adProcessPara.getDefaultValue2());
                     model.setVFormat(adProcessPara.getVFormat());
@@ -4518,7 +4518,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setEntityType(adProcessPara.getEntityType());
                     model.setReadOnlyLogic(adProcessPara.getReadOnlyLogic());
                     model.setDisplayLogic(adProcessPara.getDisplayLogic());
-                    model.setIsInfoOnly(adProcessPara.isInfoOnly());
+                    model.setIsInfoOnly(adProcessPara.getIsInfoOnly());
 
                     if (this.hashElementos.containsKey(adProcessPara.getAD_Element_ID())){
                         model.setAD_Element_ID(this.hashElementos.get(adProcessPara.getAD_Element_ID()).intValue());
@@ -4573,10 +4573,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setSeqNo(adProcessPara.getSeqNo());
                     model.setAD_Reference_ID(adProcessPara.getAD_Reference_ID());
                     model.setColumnName(adProcessPara.getColumnName());
-                    model.setIsCentrallyMaintained(adProcessPara.isCentrallyMaintained());
+                    model.setIsCentrallyMaintained(adProcessPara.getIsCentrallyMaintained());
                     model.setFieldLength(adProcessPara.getFieldLength());
-                    model.setIsMandatory(adProcessPara.isMandatory());
-                    model.setIsRange(adProcessPara.isRange());
+                    model.setIsMandatory(adProcessPara.getIsMandatory());
+                    model.setIsRange(adProcessPara.getIsRange());
                     model.setDefaultValue(adProcessPara.getDefaultValue());
                     model.setDefaultValue2(adProcessPara.getDefaultValue2());
                     model.setVFormat(adProcessPara.getVFormat());
@@ -4585,7 +4585,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setEntityType(adProcessPara.getEntityType());
                     model.setReadOnlyLogic(adProcessPara.getReadOnlyLogic());
                     model.setDisplayLogic(adProcessPara.getDisplayLogic());
-                    model.setIsInfoOnly(adProcessPara.isInfoOnly());
+                    model.setIsInfoOnly(adProcessPara.getIsInfoOnly());
 
                     if (this.hashElementos.containsKey(adProcessPara.getAD_Element_ID())){
                         model.setAD_Element_ID(this.hashElementos.get(adProcessPara.getAD_Element_ID()).intValue());
@@ -4702,28 +4702,28 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         model.setAD_Reference_ID(adColumn.getAD_Reference_ID());
                         model.setFieldLength(adColumn.getFieldLength());
                         model.setDefaultValue(adColumn.getDefaultValue());
-                        model.setIsKey(adColumn.isKey());
-                        model.setIsParent(adColumn.isParent());
-                        model.setIsMandatory(adColumn.isMandatory());
-                        model.setIsUpdateable(adColumn.isUpdateable());
+                        model.setIsKey(adColumn.getIsKey());
+                        model.setIsParent(adColumn.getIsParent());
+                        model.setIsMandatory(adColumn.getIsMandatory());
+                        model.setIsUpdateable(adColumn.getIsUpdateable());
                         model.setReadOnlyLogic(adColumn.getReadOnlyLogic());
-                        model.setIsIdentifier(adColumn.isIdentifier());
-                        model.setIsTranslated(adColumn.isTranslated());
+                        model.setIsIdentifier(adColumn.getIsIdentifier());
+                        model.setIsTranslated(adColumn.getIsTranslated());
                         model.setIsEncrypted(adColumn.getIsEncrypted());
                         model.setCallout(adColumn.getCallout());
                         model.setVFormat(adColumn.getVFormat());
                         model.setValueMin(adColumn.getValueMin());
                         model.setValueMax(adColumn.getValueMax());
-                        model.setIsSelectionColumn(adColumn.isSelectionColumn());
-                        model.setIsAlwaysUpdateable(adColumn.isAlwaysUpdateable());
+                        model.setIsSelectionColumn(adColumn.getIsSelectionColumn());
+                        model.setIsAlwaysUpdateable(adColumn.getIsAlwaysUpdateable());
                         model.setColumnSQL(adColumn.getColumnSQL());
                         model.setMandatoryLogic(adColumn.getMandatoryLogic());
                         model.setInfoFactoryClass(adColumn.getInfoFactoryClass());
-                        model.setIsAutocomplete(adColumn.isAutocomplete());
-                        model.setIsAllowLogging(adColumn.isAllowLogging());
+                        model.setIsAutocomplete(adColumn.getIsAutocomplete());
+                        model.setIsAllowLogging(adColumn.getIsAllowLogging());
                         model.setFormatPattern(adColumn.getFormatPattern());
-                        model.setIsRange(adColumn.isRange());
-                        model.setIsAllowCopy(adColumn.isAllowCopy());
+                        model.setIsRange(adColumn.getIsRange());
+                        model.setIsAllowCopy(adColumn.getIsAllowCopy());
                         model.setSeqNo(adColumn.getSeqNo());
 
                         if (adColumn.getAD_Reference_Value_ID() > 0){
@@ -4773,41 +4773,30 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         model.setHelp(adColumn.getHelp());
                         model.setEntityType(adColumn.getEntityType());
                         model.setAD_Reference_ID(adColumn.getAD_Reference_ID());
-
-                        // Si esta colunna tiene referencia ID, me aseguro de que sea marcada como clave, obligatorio y no actualizable
-                        if (model.getAD_Reference_ID() == 13){
-                            model.setIsKey(true);
-                            model.setIsMandatory(true);
-                            model.setIsUpdateable(false);
-                            model.setIsAlwaysUpdateable(false);
-                        }
-                        else{
-                            model.setIsKey(adColumn.isKey());
-                            model.setIsMandatory(adColumn.isMandatory());
-                            model.setIsUpdateable(adColumn.isUpdateable());
-                            model.setIsAlwaysUpdateable(adColumn.isAlwaysUpdateable());
-                        }
-
+                        model.setIsKey(adColumn.getIsKey());
+                        model.setIsMandatory(adColumn.getIsMandatory());
+                        model.setIsUpdateable(adColumn.getIsUpdateable());
+                        model.setIsAlwaysUpdateable(adColumn.getIsAlwaysUpdateable());
                         model.setFieldLength(adColumn.getFieldLength());
                         model.setDefaultValue(adColumn.getDefaultValue());
-                        model.setIsParent(adColumn.isParent());
+                        model.setIsParent(adColumn.getIsParent());
                         model.setReadOnlyLogic(adColumn.getReadOnlyLogic());
-                        model.setIsIdentifier(adColumn.isIdentifier());
-                        model.setIsTranslated(adColumn.isTranslated());
+                        model.setIsIdentifier(adColumn.getIsIdentifier());
+                        model.setIsTranslated(adColumn.getIsTranslated());
                         model.setIsEncrypted(adColumn.getIsEncrypted());
                         model.setCallout(adColumn.getCallout());
                         model.setVFormat(adColumn.getVFormat());
                         model.setValueMin(adColumn.getValueMin());
                         model.setValueMax(adColumn.getValueMax());
-                        model.setIsSelectionColumn(adColumn.isSelectionColumn());
+                        model.setIsSelectionColumn(adColumn.getIsSelectionColumn());
                         model.setColumnSQL(adColumn.getColumnSQL());
                         model.setMandatoryLogic(adColumn.getMandatoryLogic());
                         model.setInfoFactoryClass(adColumn.getInfoFactoryClass());
-                        model.setIsAutocomplete(adColumn.isAutocomplete());
-                        model.setIsAllowLogging(adColumn.isAllowLogging());
+                        model.setIsAutocomplete(adColumn.getIsAutocomplete());
+                        model.setIsAllowLogging(adColumn.getIsAllowLogging());
                         model.setFormatPattern(adColumn.getFormatPattern());
-                        model.setIsRange(adColumn.isRange());
-                        model.setIsAllowCopy(adColumn.isAllowCopy());
+                        model.setIsRange(adColumn.getIsRange());
+                        model.setIsAllowCopy(adColumn.getIsAllowCopy());
 
                         if (adColumn.getAD_Reference_Value_ID() > 0){
                             if (this.hashReferencias.containsKey(adColumn.getAD_Reference_Value_ID())){
@@ -4858,39 +4847,28 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setAD_Reference_ID(adColumn.getAD_Reference_ID());
                     model.setFieldLength(adColumn.getFieldLength());
                     model.setDefaultValue(adColumn.getDefaultValue());
-
-                    // Si esta colunna tiene referencia ID, me aseguro de que sea marcada como clave, obligatorio y no actualizable
-                    if (model.getAD_Reference_ID() == 13){
-                        model.setIsKey(true);
-                        model.setIsMandatory(true);
-                        model.setIsUpdateable(false);
-                        model.setIsAlwaysUpdateable(false);
-                    }
-                    else{
-                        model.setIsKey(adColumn.isKey());
-                        model.setIsMandatory(adColumn.isMandatory());
-                        model.setIsUpdateable(adColumn.isUpdateable());
-                        model.setIsAlwaysUpdateable(adColumn.isAlwaysUpdateable());
-                    }
-
-                    model.setIsParent(adColumn.isParent());
+                    model.setIsKey(adColumn.getIsKey());
+                    model.setIsMandatory(adColumn.getIsMandatory());
+                    model.setIsUpdateable(adColumn.getIsUpdateable());
+                    model.setIsAlwaysUpdateable(adColumn.getIsAlwaysUpdateable());
+                    model.setIsParent(adColumn.getIsParent());
                     model.setReadOnlyLogic(adColumn.getReadOnlyLogic());
-                    model.setIsIdentifier(adColumn.isIdentifier());
-                    model.setIsTranslated(adColumn.isTranslated());
+                    model.setIsIdentifier(adColumn.getIsIdentifier());
+                    model.setIsTranslated(adColumn.getIsTranslated());
                     model.setIsEncrypted(adColumn.getIsEncrypted());
                     model.setCallout(adColumn.getCallout());
                     model.setVFormat(adColumn.getVFormat());
                     model.setValueMin(adColumn.getValueMin());
                     model.setValueMax(adColumn.getValueMax());
-                    model.setIsSelectionColumn(adColumn.isSelectionColumn());
+                    model.setIsSelectionColumn(adColumn.getIsSelectionColumn());
                     model.setColumnSQL(adColumn.getColumnSQL());
                     model.setMandatoryLogic(adColumn.getMandatoryLogic());
                     model.setInfoFactoryClass(adColumn.getInfoFactoryClass());
-                    model.setIsAutocomplete(adColumn.isAutocomplete());
-                    model.setIsAllowLogging(adColumn.isAllowLogging());
+                    model.setIsAutocomplete(adColumn.getIsAutocomplete());
+                    model.setIsAllowLogging(adColumn.getIsAllowLogging());
                     model.setFormatPattern(adColumn.getFormatPattern());
-                    model.setIsRange(adColumn.isRange());
-                    model.setIsAllowCopy(adColumn.isAllowCopy());
+                    model.setIsRange(adColumn.getIsRange());
+                    model.setIsAllowCopy(adColumn.getIsAllowCopy());
 
                     if (adColumn.getAD_Reference_Value_ID() > 0){
                         if (this.hashReferencias.containsKey(adColumn.getAD_Reference_Value_ID())){
@@ -5143,7 +5121,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         model.setAD_Display(adColDisplayIDAux);
                     }
 
-                    model.setIsValueDisplayed(adRefTable.isValueDisplayed());
+                    model.setIsValueDisplayed(adRefTable.getIsValueDisplayed());
                     model.setWhereClause(adRefTable.getWhereClause());
                     model.setOrderByClause(adRefTable.getOrderByClause());
                     model.setEntityType(adRefTable.getEntityType());
@@ -5152,7 +5130,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         model.setAD_Window_ID(adWindowIDAux);
                     }
 
-                    model.setIsAlert(adRefTable.isAlert());
+                    model.setIsAlert(adRefTable.getIsAlert());
                     model.setDisplaySQL(adRefTable.getDisplaySQL());
                     model.setIsDisplayIdentifier(adRefTable.isDisplayIdentifier());
                     model.saveEx();

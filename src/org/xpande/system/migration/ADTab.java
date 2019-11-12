@@ -128,6 +128,113 @@ public class ADTab extends PO implements I_AD_Tab, I_Persistent
 	}
 	// Fin Xpande.
 
+	// Xpande. Gabriel Vila. 12/11/2019.
+	// Para la serializacion de objetos de este type a XML, se requieren que sus atributos tengan las propiedades GET y SET.
+	// Adempiere para los atributos que empiezan con IS, no les pone el profijo GET y por lo tanto estos atributos no se serializan
+	// Agrego metodos GET para los metodos que hoy comienzan con IS...
+	public boolean getIsAdvancedTab ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsAdvancedTab);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsHasTree ()
+	{
+		Object oo = get_Value(COLUMNNAME_HasTree);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsInfoTab ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsInfoTab);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsInsertRecord ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsInsertRecord);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsProcessing ()
+	{
+		Object oo = get_Value(COLUMNNAME_Processing);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsReadOnly ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsReadOnly);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsSingleRow ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsSingleRow);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsSortTab ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsSortTab);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+	public boolean getIsTranslationTab ()
+	{
+		Object oo = get_Value(COLUMNNAME_IsTranslationTab);
+		if (oo != null)
+		{
+			if (oo instanceof Boolean)
+				return ((Boolean)oo).booleanValue();
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	// Fin Xpande.
+
+
 	/** AccessLevel
       * @return 4 - System 
       */
