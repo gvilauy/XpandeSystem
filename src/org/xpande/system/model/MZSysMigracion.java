@@ -4932,7 +4932,16 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             for (ADColumn adColumn: this.cabezalMigracion.getColumnList()){
 
-                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Column.Table_ID, adColumn.get_ID());
+                System.out.println(adColumn.getColumnName());
+
+                /*
+                // Evito conflictos entre bases que no tienen UUID
+                if (adColumn.getColumnName().equalsIgnoreCase("UUID")){
+                    continue;
+                }
+                */
+
+                    MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Column.Table_ID, adColumn.get_ID());
                 if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
                     continue;
                 }
