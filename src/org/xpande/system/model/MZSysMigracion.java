@@ -5040,6 +5040,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                             }
                         }
 
+                        if (adColumn.getAD_Process_ID() > 0){
+                            if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
+                                model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
+                            }
+                            else {
+                                model.setAD_Process_ID(adColumn.getAD_Process_ID());
+                            }
+                        }
+
                         if (this.hashElementos.containsKey(adColumn.getAD_Element_ID())){
                             model.setAD_Element_ID(this.hashElementos.get(adColumn.getAD_Element_ID()).intValue());
                         }
@@ -5117,6 +5126,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                             }
                         }
 
+                        if (adColumn.getAD_Process_ID() > 0){
+                            if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
+                                model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
+                            }
+                            else {
+                                model.setAD_Process_ID(adColumn.getAD_Process_ID());
+                            }
+                        }
+
                         // Me aseguro columna UUID que no sea de solo lectura
                         if (model.getColumnName().equalsIgnoreCase("UUID")){
                             model.setIsMandatory(false);
@@ -5191,6 +5209,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         }
                         else {
                             model.setAD_Val_Rule_ID(adColumn.getAD_Val_Rule_ID());
+                        }
+                    }
+
+                    if (adColumn.getAD_Process_ID() > 0){
+                        if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
+                            model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
+                        }
+                        else {
+                            model.setAD_Process_ID(adColumn.getAD_Process_ID());
                         }
                     }
 
