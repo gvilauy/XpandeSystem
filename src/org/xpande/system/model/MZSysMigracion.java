@@ -5040,12 +5040,14 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                             }
                         }
 
-                        if (adColumn.getAD_Process_ID() > 0){
-                            if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
-                                model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
-                            }
-                            else {
-                                model.setAD_Process_ID(adColumn.getAD_Process_ID());
+                        if (!adColumn.getColumnName().equalsIgnoreCase("DocAction")){
+                            if (adColumn.getAD_Process_ID() > 0){
+                                if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
+                                    model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
+                                }
+                                else {
+                                    model.setAD_Process_ID(adColumn.getAD_Process_ID());
+                                }
                             }
                         }
 
@@ -5126,12 +5128,14 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                             }
                         }
 
-                        if (adColumn.getAD_Process_ID() > 0){
-                            if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
-                                model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
-                            }
-                            else {
-                                model.setAD_Process_ID(adColumn.getAD_Process_ID());
+                        if (!adColumn.getColumnName().equalsIgnoreCase("DocAction")){
+                            if (adColumn.getAD_Process_ID() > 0){
+                                if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
+                                    model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
+                                }
+                                else {
+                                    model.setAD_Process_ID(adColumn.getAD_Process_ID());
+                                }
                             }
                         }
 
@@ -5212,12 +5216,14 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         }
                     }
 
-                    if (adColumn.getAD_Process_ID() > 0){
-                        if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
-                            model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
-                        }
-                        else {
-                            model.setAD_Process_ID(adColumn.getAD_Process_ID());
+                    if (!adColumn.getColumnName().equalsIgnoreCase("DocAction")){
+                        if (adColumn.getAD_Process_ID() > 0){
+                            if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
+                                model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
+                            }
+                            else {
+                                model.setAD_Process_ID(adColumn.getAD_Process_ID());
+                            }
                         }
                     }
 
