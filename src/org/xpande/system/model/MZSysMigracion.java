@@ -701,6 +701,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
         ResultSet rs = null;
 
         try{
+
+            whereClause = whereClause.replaceAll("a.name", "a.tablename");
+
             sql = " select a.ad_table_id, a.name, a.versionno, a.updated, a.entitytype " +
                     " from ad_table a " +
                     " where a.isactive ='Y' " + whereClause +
@@ -980,7 +983,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             // Proceso elemento de este parametro de proceso
             X_AD_Element element = (X_AD_Element) processPara.getAD_Element();
-            this.setElementoLin(element, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_PROCESO_PARAM, processPara.getName(), processPara.get_ID());
+            if ((element != null) && (element.get_ID() > 0)){
+                this.setElementoLin(element, X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_PROCESO_PARAM, processPara.getName(), processPara.get_ID());
+            }
 
             // Si tengo referencia asociada la proceso
             if (processPara.getAD_Reference_Value_ID() > 0){
