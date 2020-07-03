@@ -3543,6 +3543,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (sysMigracionLin.isExisteItem()){
                     // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
                     if (!this.isTranslated()){
+                        // Agrego asociación de ID origen con ID destino
+                        this.hashValidaciones.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
                         continue;
                     }
                     else {
@@ -3737,6 +3739,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (sysMigracionLin.isExisteItem()){
                     // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
                     if (!this.isTranslated()){
+                        // Agrego asociación de ID origen con ID destino
+                        this.hashVistaInf.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
                         continue;
                     }
                     else {
@@ -3857,6 +3861,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (sysMigracionLin.isExisteItem()){
                     // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
                     if (!this.isTranslated()){
+                        // Agrego asociación de ID origen con ID destino
+                        this.hashReferencias.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
                         continue;
                     }
                     else {
@@ -3942,6 +3948,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             for (ADElement adElement: this.cabezalMigracion.getElementList()){
 
+                System.out.println(adElement.getName());
+
                 MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Element.Table_ID, adElement.get_ID());
                 if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
                     continue;
@@ -3958,6 +3966,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (sysMigracionLin.isExisteItem()){
                     // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
                     if (!this.isTranslated()){
+                        // Agrego asociación de ID origen con ID destino
+                        this.hashElementos.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
                         continue;
                     }
                     else {
@@ -4088,6 +4098,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (sysMigracionLin.isExisteItem()){
                     // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
                     if (!this.isTranslated()){
+                        // Agrego asociación de ID origen con ID destino
+                        this.hashTablas.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
                         continue;
                     }
                     else {
@@ -4204,6 +4216,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (sysMigracionLin.isExisteItem()){
                     // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
                     if (!this.isTranslated()){
+                        // Agrego asociación de ID origen con ID destino
+                        this.hashProcesos.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
                         continue;
                     }
                     else {
@@ -4394,7 +4408,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (importObject){
 
                     // Nombre de la ventana para que no duplique si es que existe. Siempre la ventana es nueva.
-                    String nombre = "Z_IMPORT_" + new Timestamp(System.currentTimeMillis()).toString() + "_" + adWindow.getName();
+                    String nombre = "IMP_" + new Timestamp(System.currentTimeMillis()).toString() + "_" + adWindow.getName();
 
                     // Creo nuevo modelo de objeto
                     model = new MWindow(getCtx(), 0, null);
@@ -4711,6 +4725,12 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         model.setAD_Column_ID(this.hashColumnas.get(adField.getAD_Column_ID()).intValue());
                     }
                     else {
+                        // Por las dudas verifico que esta columna exista en la base de datos.
+                        // Sino existe no agrego este field.
+                        MColumn column = (MColumn) adField.getAD_Column();
+                        if ((column == null) || (column.get_ID() <= 0)){
+                            continue;
+                        }
                         model.setAD_Column_ID(adField.getAD_Column_ID());
                     }
 
@@ -4962,6 +4982,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (sysMigracionLin.isExisteItem()){
                     // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
                     if (!this.isTranslated()){
+                        // Agrego asociación de ID origen con ID destino
+                        this.hashColumnas.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
                         continue;
                     }
                     else {
