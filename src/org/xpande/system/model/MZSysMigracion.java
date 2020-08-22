@@ -6,8 +6,6 @@ import org.compiere.util.DB;
 import org.compiere.util.ValueNamePair;
 import org.xpande.system.migration.*;
 import org.xpande.system.utils.SystemUtils;
-
-import javax.el.MapELResolver;
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.FileInputStream;
@@ -29,16 +27,16 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
     private String whereClause = "";
     private CabezalMigracion cabezalMigracion = null;
-    private HashMap<Integer, Integer> hashValidaciones = new HashMap<Integer, Integer>();
-    private HashMap<Integer, Integer> hashReferencias = new HashMap<Integer, Integer>();
-    private HashMap<Integer, Integer> hashElementos = new HashMap<Integer, Integer>();
-    private HashMap<Integer, Integer> hashTablas = new HashMap<Integer, Integer>();
-    private HashMap<Integer, Integer> hashColumnas = new HashMap<Integer, Integer>();
-    private HashMap<Integer, Integer> hashProcesos = new HashMap<Integer, Integer>();
-    private HashMap<Integer, Integer> hashVistaInf = new HashMap<Integer, Integer>();
-    private HashMap<Integer, Integer> hashVentanas = new HashMap<Integer, Integer>();
-    private HashMap<Integer, Integer> hashPestanias = new HashMap<Integer, Integer>();
-    private HashMap<Integer, Integer> hashFieldGroups = new HashMap<Integer, Integer>();
+    private HashMap<Integer, Integer> hashValidaciones = new HashMap<>();
+    private HashMap<Integer, Integer> hashReferencias = new HashMap<>();
+    private HashMap<Integer, Integer> hashElementos = new HashMap<>();
+    private HashMap<Integer, Integer> hashTablas = new HashMap<>();
+    private HashMap<Integer, Integer> hashColumnas = new HashMap<>();
+    private HashMap<Integer, Integer> hashProcesos = new HashMap<>();
+    private HashMap<Integer, Integer> hashVistaInf = new HashMap<>();
+    private HashMap<Integer, Integer> hashVentanas = new HashMap<>();
+    private HashMap<Integer, Integer> hashPestanias = new HashMap<>();
+    private HashMap<Integer, Integer> hashFieldGroups = new HashMap<>();
 
     public MZSysMigracion(Properties ctx, int Z_Sys_Migracion_ID, String trxName) {
         super(ctx, Z_Sys_Migracion_ID, trxName);
@@ -153,9 +151,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
      */
     private String getElementosDB() {
 
-        String message = null;
-
-        String sql = "";
+        String sql;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
@@ -181,7 +177,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             rs = null; pstmt = null;
         }
 
-        return message;
+        return null;
     }
 
     /***
@@ -1885,6 +1881,20 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
             // Para cada traducción recibida
             for (Traduccion traduccion: traduccionList){
 
+                // Elimino caracteres peligrosos
+                if (traduccion.getDescription() != null){
+                    traduccion.setDescription(traduccion.getDescription().replace("'", ""));
+                }
+                if (traduccion.getPoDescription() != null){
+                    traduccion.setPoDescription(traduccion.getPoDescription().replace("'", ""));
+                }
+                if (traduccion.getHelp() != null){
+                    traduccion.setHelp(traduccion.getHelp().replace("'", ""));
+                }
+                if (traduccion.getPoHelp() != null){
+                    traduccion.setPoHelp(traduccion.getPoHelp().replace("'", ""));
+                }
+
                 // Elimino anterior
                 action = " delete from " + tableName + "_trl " +
                         " where " + tableName + "_id =" + recordID +
@@ -1998,6 +2008,17 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
                 MTable table = new MTable(getCtx(), rs.getInt("ad_table_id"), null);
 
+                ADTable adTable = new ADTable(getCtx(), rs.getInt("ad_table_id"), null);
+                adTable.setParentType(rs.getString("TipoSysMigraObjFrom"));
+                adTable.setParentName(rs.getString("parentName"));
+                adTable.setParentID(rs.getInt("parent_ID"));
+
+                List<Traduccion> traduccionList = this.getTraducciones(adTable.Table_Name, adTable.get_ID(), "es_MX");
+                adTable.setTraduccionList(traduccionList);
+
+                this.cabezalMigracion.getTableList().add(adTable);
+
+                /*
                 // Exporto esta tabla si no es tipo de entidad Diccionario
                 if (!table.getEntityType().equalsIgnoreCase(X_AD_Table.ENTITYTYPE_Dictionary)){
                     ADTable adTable = new ADTable(getCtx(), rs.getInt("ad_table_id"), null);
@@ -2010,28 +2031,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
                     this.cabezalMigracion.getTableList().add(adTable);
                 }
-
-                /*
-                // Recorro columnas de esta tabla para exportar
-                List<MColumn> columnList = table.getColumnsAsList();
-                for (MColumn column: columnList){
-
-                    if ((this.isDictionary()) || (!column.getEntityType().equalsIgnoreCase(X_AD_Table.ENTITYTYPE_Dictionary))){
-                        ADColumn adColumn = new ADColumn(getCtx(), column.get_ID(), null);
-
-                        adColumn.setParentType(X_Z_Sys_MigracionLin.TIPOSYSMIGRAOBJ_TABLA);
-                        adColumn.setParentName(table.getName());
-                        adColumn.setParentID(table.get_ID());
-
-                        List<Traduccion> traduccionColList = this.getTraducciones(adColumn.Table_Name, adColumn.get_ID(), "es_MX");
-                        adColumn.setTraduccionList(traduccionColList);
-
-                        this.cabezalMigracion.getColumnList().add(adColumn);
-                    }
-
-                }
-
-                 */
+                */
             }
         }
         catch (Exception e){
@@ -3536,32 +3536,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        // Agrego asociación de ID origen con ID destino
-                        this.hashValidaciones.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-
                 MValRule model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Si este objeto no existe en la base destino
+                if (!sysMigracionLin.isExisteItem()){
 
                     // Creo nuevo modelo de objeto
                     model = new MValRule(getCtx(), 0, null);
@@ -3588,11 +3566,13 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         continue;
                     }
 
-                    // Modifico atributos
+                    if (!model.getEntityType().equalsIgnoreCase(ENTITYTYPE_Dictionary)){
+                        model.setType(adValRule.getType());
+                        model.setEntityType(adValRule.getEntityType());
+                    }
                     model.setCode(adValRule.getCode());
                     model.setDescription(adValRule.getDescription());
-                    model.setType(adValRule.getType());
-                    model.setEntityType(adValRule.getEntityType());
+
                     model.saveEx();
 
                 }
@@ -3632,30 +3612,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-
                 X_AD_FieldGroup model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Si este objeto no existe en la base destino
+                if (!sysMigracionLin.isExisteItem()){
 
                     // Creo nuevo modelo de objeto
                     model = new X_AD_FieldGroup(getCtx(), 0, null);
@@ -3697,8 +3657,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 this.hashFieldGroups.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
 
                 // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
+                if (this.isTranslated()){
                     this.importTraducciones(X_AD_FieldGroup.Table_Name, model.get_ID(), adFieldGroup.getTraduccionList());
                 }
 
@@ -3732,32 +3691,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        // Agrego asociación de ID origen con ID destino
-                        this.hashVistaInf.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-
                 X_AD_ReportView model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Si este objeto no existe en la base destino
+                if (!sysMigracionLin.isExisteItem()){
 
                     // Creo nuevo modelo de objeto
                     model = new X_AD_ReportView(getCtx(), 0, null);
@@ -3794,20 +3731,21 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         continue;
                     }
 
-                    // Modifico atributos
+                    if (!model.getEntityType().equalsIgnoreCase(ENTITYTYPE_Dictionary)){
+                        model.setEntityType(adReportView.getEntityType());
+                        model.setIsCentrallyMaintained(adReportView.getIsCentrallyMaintained());
+
+                        if (this.hashTablas.containsKey(adReportView.getAD_Table_ID())){
+                            model.setAD_Table_ID(this.hashReferencias.get(adReportView.getAD_Table_ID()));
+                        }
+                        else {
+                            model.setAD_Table_ID(adReportView.getAD_Table_ID());
+                        }
+                    }
                     model.setDescription(adReportView.getDescription());
+                    model.setPrintName(adReportView.getPrintName());
                     model.setWhereClause(adReportView.getWhereClause());
                     model.setOrderByClause(adReportView.getOrderByClause());
-                    model.setEntityType(adReportView.getEntityType());
-                    model.setPrintName(adReportView.getPrintName());
-                    model.setIsCentrallyMaintained(adReportView.getIsCentrallyMaintained());
-
-                    if (this.hashTablas.containsKey(adReportView.getAD_Table_ID())){
-                        model.setAD_Table_ID(this.hashReferencias.get(adReportView.getAD_Table_ID()));
-                    }
-                    else {
-                        model.setAD_Table_ID(adReportView.getAD_Table_ID());
-                    }
 
                     model.saveEx();
                 }
@@ -3819,8 +3757,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 this.hashVistaInf.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
 
                 // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
+                if (this.isTranslated()){
                     this.importTraducciones(X_AD_ReportView.Table_Name, model.get_ID(), adReportView.getTraduccionList());
                 }
 
@@ -3854,32 +3791,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        // Agrego asociación de ID origen con ID destino
-                        this.hashReferencias.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-
                 X_AD_Reference model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Si este objeto no existe en la base destino
+                if (!sysMigracionLin.isExisteItem()){
 
                     // Creo nuevo modelo de objeto
                     model = new X_AD_Reference(getCtx(), 0, null);
@@ -3908,12 +3823,15 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         continue;
                     }
 
+                    if (!model.getEntityType().equalsIgnoreCase(ENTITYTYPE_Dictionary)){
+                        model.setValidationType(adReference.getValidationType());
+                        model.setVFormat(adReference.getVFormat());
+                        model.setEntityType(adReference.getEntityType());
+                        model.setIsOrderByValue(adReference.isOrderByValue());
+                    }
                     model.setDescription(adReference.getDescription());
                     model.setHelp(adReference.getHelp());
-                    model.setValidationType(adReference.getValidationType());
-                    model.setVFormat(adReference.getVFormat());
-                    model.setEntityType(adReference.getEntityType());
-                    model.setIsOrderByValue(adReference.isOrderByValue());
+
                     model.saveEx();
                 }
 
@@ -3924,8 +3842,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 this.hashReferencias.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
 
                 // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
+                if (this.isTranslated()){
                     this.importTraducciones(X_AD_Reference.Table_Name, model.get_ID(), adReference.getTraduccionList());
                 }
             }
@@ -3959,32 +3876,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        // Agrego asociación de ID origen con ID destino
-                        this.hashElementos.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-
                 M_Element model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Si elemento no existe en base de datos
+                if (!sysMigracionLin.isExisteItem()){
 
                     // Creo nuevo modelo de objeto
                     model = new M_Element(getCtx(), 0, null);
@@ -4028,8 +3923,19 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         continue;
                     }
 
-                    model.setEntityType(adElement.getEntityType());
-                    model.setName(adElement.getName());
+                    // Si el elemento no es del Tipo Dictionary
+                    if (!model.getEntityType().equalsIgnoreCase(ENTITYTYPE_Dictionary)){
+                        model.setEntityType(adElement.getEntityType());
+                        model.setAD_Reference_ID(adElement.getAD_Reference_ID());
+                        if (adElement.getAD_Reference_Value_ID() > 0){
+                            if (this.hashReferencias.containsKey(adElement.getAD_Reference_Value_ID())){
+                                model.setAD_Reference_Value_ID(this.hashReferencias.get(adElement.getAD_Reference_Value_ID()).intValue());
+                            }
+                            else {
+                                model.setAD_Reference_Value_ID(adElement.getAD_Reference_Value_ID());
+                            }
+                        }
+                    }
                     model.setPrintName(adElement.getPrintName());
                     model.setDescription(adElement.getDescription());
                     model.setHelp(adElement.getHelp());
@@ -4038,16 +3944,6 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setPO_Description(adElement.getPO_Description());
                     model.setPO_Help(adElement.getPO_Help());
                     model.setFieldLength(adElement.getFieldLength());
-                    model.setAD_Reference_ID(adElement.getAD_Reference_ID());
-
-                    if (adElement.getAD_Reference_Value_ID() > 0){
-                        if (this.hashReferencias.containsKey(adElement.getAD_Reference_Value_ID())){
-                            model.setAD_Reference_Value_ID(this.hashReferencias.get(adElement.getAD_Reference_Value_ID()).intValue());
-                        }
-                        else {
-                            model.setAD_Reference_Value_ID(adElement.getAD_Reference_Value_ID());
-                        }
-                    }
 
                     model.saveEx();
                 }
@@ -4058,9 +3954,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 // Agrego asociación de ID origen con ID destino
                 this.hashElementos.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
 
-                // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
+                // Si importa traduccion, lo hago ahora.
+                if (this.isTranslated()){
                     this.importTraducciones(X_AD_Element.Table_Name, model.get_ID(), adElement.getTraduccionList());
                 }
             }
@@ -4091,32 +3986,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        // Agrego asociación de ID origen con ID destino
-                        this.hashTablas.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-
                 MTable model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Si este objeto no existe en la base destino
+                if (!sysMigracionLin.isExisteItem()){
 
                     // Creo nuevo modelo de objeto
                     model = new MTable(getCtx(), 0, null);
@@ -4152,20 +4025,19 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         continue;
                     }
 
-                    model.setName(adTable.getName());
-                    model.setDescription(adTable.getDescription());
-                    model.setHelp(adTable.getHelp());
-                    model.setTableName(adTable.getTableName());
-                    model.setIsView(adTable.getIsView());
-                    model.setAccessLevel(adTable.getAccessLevel());
-                    model.setEntityType(adTable.getEntityType());
-                    model.setIsSecurityEnabled(adTable.getIsSecurityEnabled());
-                    model.setIsDeleteable(adTable.getIsDeleteable());
+                    if (!model.getEntityType().equalsIgnoreCase(ENTITYTYPE_Dictionary)){
+                        model.setIsView(adTable.getIsView());
+                        model.setAccessLevel(adTable.getAccessLevel());
+                        model.setEntityType(adTable.getEntityType());
+                        model.setIsSecurityEnabled(adTable.getIsSecurityEnabled());
+                        model.setReplicationType(adTable.getReplicationType());
+                        model.setIsCentrallyMaintained(adTable.getIsCentrallyMaintained());
+                        model.setIsDocument(adTable.getIsDocument());
+                    }
                     model.setIsHighVolume(adTable.getIsHighVolume());
                     model.setIsChangeLog(adTable.getIsChangeLog());
-                    model.setReplicationType(adTable.getReplicationType());
-                    model.setIsCentrallyMaintained(adTable.getIsCentrallyMaintained());
-                    model.setIsDocument(adTable.getIsDocument());
+                    model.setIsDeleteable(adTable.getIsDeleteable());
+                    model.setHelp(adTable.getHelp());
 
                     model.saveEx();
                 }
@@ -4177,8 +4049,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 this.hashTablas.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
 
                 // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
+                if (this.isTranslated()){
                     this.importTraducciones(X_AD_Table.Table_Name, model.get_ID(), adTable.getTraduccionList());
                 }
             }
@@ -4209,32 +4080,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        // Agrego asociación de ID origen con ID destino
-                        this.hashProcesos.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-
                 MProcess model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Si este objeto no existe en la base destino
+                if (!sysMigracionLin.isExisteItem()){
 
                     // Creo nuevo modelo de objeto
                     model = new MProcess(getCtx(), 0, null);
@@ -4296,44 +4145,48 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         continue;
                     }
 
+                    if (!model.getEntityType().equalsIgnoreCase(ENTITYTYPE_Dictionary)){
+
+                        model.setAccessLevel(adProcess.getAccessLevel());
+                        model.setEntityType(adProcess.getEntityType());
+                        model.setProcedureName(adProcess.getProcedureName());
+                        model.setIsReport(adProcess.getIsReport());
+                        model.setIsDirectPrint(adProcess.getIsDirectPrint());
+                        model.setClassname(adProcess.getClassname());
+                        model.setWorkflowValue(adProcess.getWorkflowValue());
+                        model.setIsBetaFunctionality(adProcess.getIsBetaFunctionality());
+                        model.setIsServerProcess(adProcess.getIsServerProcess());
+                        model.setShowHelp(adProcess.getShowHelp());
+                        model.setJasperReport(adProcess.getJasperReport());
+
+                        if (adProcess.getAD_ReportView_ID() > 0){
+                            if (this.hashVistaInf.containsKey(adProcess.getAD_ReportView_ID())){
+                                model.setAD_ReportView_ID(this.hashVistaInf.get(adProcess.getAD_ReportView_ID()));
+                            }
+                            else {
+                                model.setAD_ReportView_ID(adProcess.getAD_ReportView_ID());
+                            }
+                        }
+
+                        if (adProcess.getAD_Browse_ID() > 0){
+                            model.setAD_Browse_ID(adProcess.getAD_Browse_ID());
+                        }
+
+                        if (adProcess.getAD_Form_ID() > 0){
+                            model.setAD_Form_ID(adProcess.getAD_Form_ID());
+                        }
+
+                        if (adProcess.getAD_Workflow_ID() > 0){
+                            model.setAD_Workflow_ID(adProcess.getAD_Workflow_ID());
+                        }
+
+                        if (adProcess.getAD_PrintFormat_ID() > 0){
+                            model.setAD_PrintFormat_ID(adProcess.getAD_PrintFormat_ID());
+                        }
+                    }
                     model.setDescription(adProcess.getDescription());
                     model.setHelp(adProcess.getHelp());
-                    model.setAccessLevel(adProcess.getAccessLevel());
-                    model.setEntityType(adProcess.getEntityType());
-                    model.setProcedureName(adProcess.getProcedureName());
-                    model.setIsReport(adProcess.getIsReport());
-                    model.setIsDirectPrint(adProcess.getIsDirectPrint());
-                    model.setClassname(adProcess.getClassname());
-                    model.setWorkflowValue(adProcess.getWorkflowValue());
-                    model.setIsBetaFunctionality(adProcess.getIsBetaFunctionality());
-                    model.setIsServerProcess(adProcess.getIsServerProcess());
-                    model.setShowHelp(adProcess.getShowHelp());
-                    model.setJasperReport(adProcess.getJasperReport());
 
-                    if (adProcess.getAD_ReportView_ID() > 0){
-                        if (this.hashVistaInf.containsKey(adProcess.getAD_ReportView_ID())){
-                            model.setAD_ReportView_ID(this.hashVistaInf.get(adProcess.getAD_ReportView_ID()));
-                        }
-                        else {
-                            model.setAD_ReportView_ID(adProcess.getAD_ReportView_ID());
-                        }
-                    }
-
-                    if (adProcess.getAD_Browse_ID() > 0){
-                        model.setAD_Browse_ID(adProcess.getAD_Browse_ID());
-                    }
-
-                    if (adProcess.getAD_Form_ID() > 0){
-                        model.setAD_Form_ID(adProcess.getAD_Form_ID());
-                    }
-
-                    if (adProcess.getAD_Workflow_ID() > 0){
-                        model.setAD_Workflow_ID(adProcess.getAD_Workflow_ID());
-                    }
-
-                    if (adProcess.getAD_PrintFormat_ID() > 0){
-                        model.setAD_PrintFormat_ID(adProcess.getAD_PrintFormat_ID());
-                    }
                     model.saveEx();
                 }
 
@@ -4344,8 +4197,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 this.hashProcesos.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
 
                 // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
+                if (this.isTranslated()){
                     this.importTraducciones(X_AD_Process.Table_Name, model.get_ID(), adProcess.getTraduccionList());
                 }
             }
@@ -4376,73 +4228,39 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                /*
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-                */
-
-                boolean importTraduccion = true;
-                boolean importObject = true;
-
-
                 MWindow model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Nombre de la ventana para que no duplique si es que existe. Siempre la ventana es nueva.
+                String nombre = "IMP_" + new Timestamp(System.currentTimeMillis()).toString() + "_" + adWindow.getName();
 
-                    // Nombre de la ventana para que no duplique si es que existe. Siempre la ventana es nueva.
-                    String nombre = "IMP_" + new Timestamp(System.currentTimeMillis()).toString() + "_" + adWindow.getName();
+                // Creo nuevo modelo de objeto
+                model = new MWindow(getCtx(), 0, null);
+                model.setAD_Org_ID(0);
+                model.setName(nombre);
+                model.setDescription(adWindow.getDescription());
+                model.setHelp(adWindow.getHelp());
+                model.setWindowType(adWindow.getWindowType());
+                model.setIsSOTrx(adWindow.getIsSOTrx());
+                model.setEntityType(adWindow.getEntityType());
+                model.setProcessing(false);
+                model.setIsDefault(adWindow.getIsDefault());
+                model.setWinHeight(adWindow.getWinHeight());
+                model.setWinWidth(adWindow.getWinWidth());
+                model.setIsBetaFunctionality(adWindow.getIsBetaFunctionality());
 
-                    // Creo nuevo modelo de objeto
-                    model = new MWindow(getCtx(), 0, null);
-                    model.setAD_Org_ID(0);
-                    model.setName(nombre);
-                    model.setDescription(adWindow.getDescription());
-                    model.setHelp(adWindow.getHelp());
-                    model.setWindowType(adWindow.getWindowType());
-                    model.setIsSOTrx(adWindow.getIsSOTrx());
-                    model.setEntityType(adWindow.getEntityType());
-                    model.setProcessing(false);
-                    model.setIsDefault(adWindow.getIsDefault());
-                    model.setWinHeight(adWindow.getWinHeight());
-                    model.setWinWidth(adWindow.getWinWidth());
-                    model.setIsBetaFunctionality(adWindow.getIsBetaFunctionality());
+                model.saveEx();
 
-                    model.saveEx();
-
-                    // Guardo ID del objeto creado en linea de migración.
-                    sysMigracionLin.setDestino_ID(model.get_ID());
-                    sysMigracionLin.setExisteItem(true);
-                }
-
+                // Guardo ID del objeto creado en linea de migración.
+                sysMigracionLin.setDestino_ID(model.get_ID());
+                sysMigracionLin.setExisteItem(true);
                 sysMigracionLin.setMessage("OK - " + model.getName());
                 sysMigracionLin.saveEx();
 
                 // Agrego asociación de ID origen con ID destino
                 this.hashVentanas.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
 
-                // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
-                    this.importTraducciones(X_AD_Window.Table_Name, model.get_ID(), adWindow.getTraduccionList());
-                }
+                // Importo traduccion
+                this.importTraducciones(X_AD_Window.Table_Name, model.get_ID(), adWindow.getTraduccionList());
             }
         }
         catch (Exception e){
@@ -4470,141 +4288,107 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (!sysMigracionLin.isSelected()){
                     continue;
                 }
-
-                /*
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-                */
-
-                boolean importTraduccion = true;
-                boolean importObject = true;
-
                 MTab model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Creo nuevo modelo de objeto
+                model = new MTab(getCtx(), 0, null);
+                model.setAD_Org_ID(0);
+                model.setName(adTab.getName());
+                model.setDescription(adTab.getDescription());
+                model.setHelp(adTab.getHelp());
+                model.setSeqNo(adTab.getSeqNo());
+                model.setTabLevel(adTab.getTabLevel());
+                model.setIsSingleRow(adTab.getIsSingleRow());
+                model.setIsInfoTab(adTab.getIsInfoTab());
+                model.setIsTranslationTab(adTab.getIsTranslationTab());
+                model.setIsReadOnly(adTab.getIsReadOnly());
+                model.setHasTree(adTab.getIsHasTree());
+                model.setWhereClause(adTab.getWhereClause());
+                model.setOrderByClause(adTab.getOrderByClause());
+                model.setCommitWarning(adTab.getCommitWarning());
+                model.setIsSortTab(adTab.getIsSortTab());
+                model.setEntityType(adTab.getEntityType());
+                model.setReadOnlyLogic(adTab.getReadOnlyLogic());
+                model.setDisplayLogic(adTab.getDisplayLogic());
+                model.setIsInsertRecord(adTab.getIsInsertRecord());
+                model.setIsAdvancedTab(adTab.getIsAdvancedTab());
 
-                    // Creo nuevo modelo de objeto
-                    model = new MTab(getCtx(), 0, null);
-                    model.setAD_Org_ID(0);
-                    model.setName(adTab.getName());
-                    model.setDescription(adTab.getDescription());
-                    model.setHelp(adTab.getHelp());
-                    model.setSeqNo(adTab.getSeqNo());
-                    model.setTabLevel(adTab.getTabLevel());
-                    model.setIsSingleRow(adTab.getIsSingleRow());
-                    model.setIsInfoTab(adTab.getIsInfoTab());
-                    model.setIsTranslationTab(adTab.getIsTranslationTab());
-                    model.setIsReadOnly(adTab.getIsReadOnly());
-                    model.setHasTree(adTab.getIsHasTree());
-                    model.setWhereClause(adTab.getWhereClause());
-                    model.setOrderByClause(adTab.getOrderByClause());
-                    model.setCommitWarning(adTab.getCommitWarning());
-                    model.setIsSortTab(adTab.getIsSortTab());
-                    model.setEntityType(adTab.getEntityType());
-                    model.setReadOnlyLogic(adTab.getReadOnlyLogic());
-                    model.setDisplayLogic(adTab.getDisplayLogic());
-                    model.setIsInsertRecord(adTab.getIsInsertRecord());
-                    model.setIsAdvancedTab(adTab.getIsAdvancedTab());
+                // Included_Tab_ID No por ahora, no hace falta.
 
-                    // Included_Tab_ID No por ahora, no hace falta.
-
-                    if (adTab.getAD_Process_ID() > 0){
-                        if (this.hashProcesos.containsKey(adTab.getAD_Process_ID())){
-                            model.setAD_Process_ID(this.hashProcesos.get(adTab.getAD_Process_ID()).intValue());
-                        }
-                        else {
-                            model.setAD_Process_ID(adTab.getAD_Process_ID());
-                        }
-                    }
-
-                    if (this.hashTablas.containsKey(adTab.getAD_Table_ID())){
-                        model.setAD_Table_ID(this.hashTablas.get(adTab.getAD_Table_ID()).intValue());
+                if (adTab.getAD_Process_ID() > 0){
+                    if (this.hashProcesos.containsKey(adTab.getAD_Process_ID())){
+                        model.setAD_Process_ID(this.hashProcesos.get(adTab.getAD_Process_ID()).intValue());
                     }
                     else {
-                        model.setAD_Table_ID(adTab.getAD_Table_ID());
+                        model.setAD_Process_ID(adTab.getAD_Process_ID());
                     }
-
-                    if (adTab.getAD_Column_ID() > 0){
-                        if (this.hashColumnas.containsKey(adTab.getAD_Column_ID())){
-                            model.setAD_Column_ID(this.hashColumnas.get(adTab.getAD_Column_ID()).intValue());
-                        }
-                        else {
-                            model.setAD_Column_ID(adTab.getAD_Column_ID());
-                        }
-                    }
-
-                    if (adTab.getAD_ColumnSortOrder_ID() > 0){
-                        if (this.hashColumnas.containsKey(adTab.getAD_ColumnSortOrder_ID())){
-                            model.setAD_ColumnSortOrder_ID(this.hashColumnas.get(adTab.getAD_ColumnSortOrder_ID()).intValue());
-                        }
-                        else {
-                            model.setAD_ColumnSortOrder_ID(adTab.getAD_ColumnSortOrder_ID());
-                        }
-                    }
-
-                    if (adTab.getAD_ColumnSortYesNo_ID() > 0){
-                        if (this.hashColumnas.containsKey(adTab.getAD_ColumnSortYesNo_ID())){
-                            model.setAD_ColumnSortYesNo_ID(this.hashColumnas.get(adTab.getAD_ColumnSortYesNo_ID()).intValue());
-                        }
-                        else {
-                            model.setAD_ColumnSortYesNo_ID(adTab.getAD_ColumnSortYesNo_ID());
-                        }
-                    }
-
-                    if (adTab.getParent_Column_ID() > 0){
-                        if (this.hashColumnas.containsKey(adTab.getParent_Column_ID())){
-                            model.setParent_Column_ID(this.hashColumnas.get(adTab.getParent_Column_ID()).intValue());
-                        }
-                        else {
-                            model.setParent_Column_ID(adTab.getParent_Column_ID());
-                        }
-                    }
-
-                    if (this.hashVentanas.containsKey(adTab.getAD_Window_ID())){
-                        model.setAD_Window_ID(this.hashVentanas.get(adTab.getAD_Window_ID()).intValue());
-                    }
-                    else {
-                        sysMigracionLin.setMessage("No se pudo importar : " + X_AD_Tab.Table_Name + " - " + adTab.get_ID());
-                        sysMigracionLin.saveEx();
-                        continue;
-                    }
-
-                    model.saveEx();
-
-                    // Guardo ID del objeto creado en linea de migración.
-                    sysMigracionLin.setDestino_ID(model.get_ID());
-                    sysMigracionLin.setExisteItem(true);
                 }
 
+                if (this.hashTablas.containsKey(adTab.getAD_Table_ID())){
+                    model.setAD_Table_ID(this.hashTablas.get(adTab.getAD_Table_ID()).intValue());
+                }
+                else {
+                    model.setAD_Table_ID(adTab.getAD_Table_ID());
+                }
+
+                if (adTab.getAD_Column_ID() > 0){
+                    if (this.hashColumnas.containsKey(adTab.getAD_Column_ID())){
+                        model.setAD_Column_ID(this.hashColumnas.get(adTab.getAD_Column_ID()).intValue());
+                    }
+                    else {
+                        model.setAD_Column_ID(adTab.getAD_Column_ID());
+                    }
+                }
+
+                if (adTab.getAD_ColumnSortOrder_ID() > 0){
+                    if (this.hashColumnas.containsKey(adTab.getAD_ColumnSortOrder_ID())){
+                        model.setAD_ColumnSortOrder_ID(this.hashColumnas.get(adTab.getAD_ColumnSortOrder_ID()).intValue());
+                    }
+                    else {
+                        model.setAD_ColumnSortOrder_ID(adTab.getAD_ColumnSortOrder_ID());
+                    }
+                }
+
+                if (adTab.getAD_ColumnSortYesNo_ID() > 0){
+                    if (this.hashColumnas.containsKey(adTab.getAD_ColumnSortYesNo_ID())){
+                        model.setAD_ColumnSortYesNo_ID(this.hashColumnas.get(adTab.getAD_ColumnSortYesNo_ID()).intValue());
+                    }
+                    else {
+                        model.setAD_ColumnSortYesNo_ID(adTab.getAD_ColumnSortYesNo_ID());
+                    }
+                }
+
+                if (adTab.getParent_Column_ID() > 0){
+                    if (this.hashColumnas.containsKey(adTab.getParent_Column_ID())){
+                        model.setParent_Column_ID(this.hashColumnas.get(adTab.getParent_Column_ID()).intValue());
+                    }
+                    else {
+                        model.setParent_Column_ID(adTab.getParent_Column_ID());
+                    }
+                }
+
+                if (this.hashVentanas.containsKey(adTab.getAD_Window_ID())){
+                    model.setAD_Window_ID(this.hashVentanas.get(adTab.getAD_Window_ID()).intValue());
+                }
+                else {
+                    sysMigracionLin.setMessage("No se pudo importar : " + X_AD_Tab.Table_Name + " - " + adTab.get_ID());
+                    sysMigracionLin.saveEx();
+                    continue;
+                }
+
+                model.saveEx();
+
+                // Guardo ID del objeto creado en linea de migración.
+                sysMigracionLin.setDestino_ID(model.get_ID());
+                sysMigracionLin.setExisteItem(true);
                 sysMigracionLin.setMessage("OK");
                 sysMigracionLin.saveEx();
 
                 // Agrego asociación de ID origen con ID destino
                 this.hashPestanias.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
 
-                // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
-                    this.importTraducciones(X_AD_Tab.Table_Name, model.get_ID(), adTab.getTraduccionList());
-                }
+                // Importo traduccion
+                this.importTraducciones(X_AD_Tab.Table_Name, model.get_ID(), adTab.getTraduccionList());
             }
         }
         catch (Exception e){
@@ -4631,133 +4415,100 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                /*
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-                */
-
-                boolean importTraduccion = true;
-                boolean importObject = true;
-
                 MField model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Creo nuevo modelo de objeto
+                model = new MField(getCtx(), 0, null);
+                model.setAD_Org_ID(0);
+                model.setName(adField.getName());
+                model.setDescription(adField.getDescription());
+                model.setHelp(adField.getHelp());
+                model.setIsCentrallyMaintained(adField.getIsCentrallyMaintained());
+                model.setIsDisplayed(adField.getIsDisplayed());
+                model.setDisplayLogic(adField.getDisplayLogic());
+                model.setDisplayLength(adField.getDisplayLength());
+                model.setIsReadOnly(adField.getIsReadOnly());
+                model.setSeqNo(adField.getSeqNo());
+                model.setSortNo(adField.getSortNo());
+                model.setIsSameLine(adField.getIsSameLine());
+                model.setIsHeading(adField.getIsHeading());
+                model.setIsFieldOnly(adField.getIsFieldOnly());
+                model.setIsEncrypted(adField.getIsEncrypted());
+                model.setEntityType(adField.getEntityType());
+                model.setObscureType(adField.getObscureType());
+                model.setIsMandatory(adField.getIsMandatory());
+                model.setDefaultValue(adField.getDefaultValue());
+                model.setInfoFactoryClass(adField.getInfoFactoryClass());
+                model.setPreferredWidth(adField.getPreferredWidth());
+                model.setIsDisplayedGrid(adField.getIsDisplayedGrid());
+                model.setSeqNoGrid(adField.getSeqNoGrid());
+                model.setIsAllowCopy(adField.getIsAllowCopy());
 
-                    // Creo nuevo modelo de objeto
-                    model = new MField(getCtx(), 0, null);
-                    model.setAD_Org_ID(0);
-                    model.setName(adField.getName());
-                    model.setDescription(adField.getDescription());
-                    model.setHelp(adField.getHelp());
-                    model.setIsCentrallyMaintained(adField.getIsCentrallyMaintained());
-                    model.setIsDisplayed(adField.getIsDisplayed());
-                    model.setDisplayLogic(adField.getDisplayLogic());
-                    model.setDisplayLength(adField.getDisplayLength());
-                    model.setIsReadOnly(adField.getIsReadOnly());
-                    model.setSeqNo(adField.getSeqNo());
-                    model.setSortNo(adField.getSortNo());
-                    model.setIsSameLine(adField.getIsSameLine());
-                    model.setIsHeading(adField.getIsHeading());
-                    model.setIsFieldOnly(adField.getIsFieldOnly());
-                    model.setIsEncrypted(adField.getIsEncrypted());
-                    model.setEntityType(adField.getEntityType());
-                    model.setObscureType(adField.getObscureType());
-                    model.setIsMandatory(adField.getIsMandatory());
-                    model.setDefaultValue(adField.getDefaultValue());
-                    model.setInfoFactoryClass(adField.getInfoFactoryClass());
-                    model.setPreferredWidth(adField.getPreferredWidth());
-                    model.setIsDisplayedGrid(adField.getIsDisplayedGrid());
-                    model.setSeqNoGrid(adField.getSeqNoGrid());
-                    model.setIsAllowCopy(adField.getIsAllowCopy());
-
-                    if (adField.getAD_Reference_ID() > 0){
-                        model.setAD_Reference_ID(adField.getAD_Reference_ID());
-                    }
-
-                    // Included_Tab_ID No por ahora, no hace falta.
-
-                    if (adField.getAD_FieldGroup_ID() > 0){
-                        if (this.hashFieldGroups.containsKey(adField.getAD_FieldGroup_ID())){
-                            model.setAD_FieldGroup_ID(this.hashFieldGroups.get(adField.getAD_FieldGroup_ID()).intValue());
-                        }
-                        else {
-                            model.setAD_FieldGroup_ID(adField.getAD_FieldGroup_ID());
-                        }
-                    }
-
-                    if (adField.getAD_Reference_Value_ID() > 0){
-                        if (this.hashReferencias.containsKey(adField.getAD_Reference_Value_ID())){
-                            model.setAD_Reference_Value_ID(this.hashReferencias.get(adField.getAD_Reference_Value_ID()).intValue());
-                        }
-                        else {
-                            model.setAD_Reference_Value_ID(adField.getAD_Reference_Value_ID());
-                        }
-                    }
-
-                    if (adField.getAD_Val_Rule_ID() > 0){
-                        if (this.hashValidaciones.containsKey(adField.getAD_Val_Rule_ID())){
-                            model.setAD_Val_Rule_ID(this.hashValidaciones.get(adField.getAD_Val_Rule_ID()).intValue());
-                        }
-                        else {
-                            model.setAD_Val_Rule_ID(adField.getAD_Val_Rule_ID());
-                        }
-                    }
-
-                    if (this.hashColumnas.containsKey(adField.getAD_Column_ID())){
-                        model.setAD_Column_ID(this.hashColumnas.get(adField.getAD_Column_ID()).intValue());
-                    }
-                    else {
-                        // Por las dudas verifico que esta columna exista en la base de datos.
-                        // Sino existe no agrego este field.
-                        MColumn column = (MColumn) adField.getAD_Column();
-                        if ((column == null) || (column.get_ID() <= 0)){
-                            continue;
-                        }
-                        model.setAD_Column_ID(adField.getAD_Column_ID());
-                    }
-
-                    if (this.hashPestanias.containsKey(adField.getAD_Tab_ID())){
-                        model.setAD_Tab_ID(this.hashPestanias.get(adField.getAD_Tab_ID()).intValue());
-                    }
-                    else {
-                        sysMigracionLin.setMessage("No se pudo importar : " + X_AD_Field.Table_Name + " - " + adField.get_ID());
-                        sysMigracionLin.saveEx();
-                        continue;
-                    }
-
-                    model.saveEx();
-
-                    // Guardo ID del objeto creado en linea de migración.
-                    sysMigracionLin.setDestino_ID(model.get_ID());
-                    sysMigracionLin.setExisteItem(true);
+                if (adField.getAD_Reference_ID() > 0){
+                    model.setAD_Reference_ID(adField.getAD_Reference_ID());
                 }
 
+                // Included_Tab_ID No por ahora, no hace falta.
+
+                if (adField.getAD_FieldGroup_ID() > 0){
+                    if (this.hashFieldGroups.containsKey(adField.getAD_FieldGroup_ID())){
+                        model.setAD_FieldGroup_ID(this.hashFieldGroups.get(adField.getAD_FieldGroup_ID()).intValue());
+                    }
+                    else {
+                        model.setAD_FieldGroup_ID(adField.getAD_FieldGroup_ID());
+                    }
+                }
+
+                if (adField.getAD_Reference_Value_ID() > 0){
+                    if (this.hashReferencias.containsKey(adField.getAD_Reference_Value_ID())){
+                        model.setAD_Reference_Value_ID(this.hashReferencias.get(adField.getAD_Reference_Value_ID()).intValue());
+                    }
+                    else {
+                        model.setAD_Reference_Value_ID(adField.getAD_Reference_Value_ID());
+                    }
+                }
+
+                if (adField.getAD_Val_Rule_ID() > 0){
+                    if (this.hashValidaciones.containsKey(adField.getAD_Val_Rule_ID())){
+                        model.setAD_Val_Rule_ID(this.hashValidaciones.get(adField.getAD_Val_Rule_ID()).intValue());
+                    }
+                    else {
+                        model.setAD_Val_Rule_ID(adField.getAD_Val_Rule_ID());
+                    }
+                }
+
+                if (this.hashColumnas.containsKey(adField.getAD_Column_ID())){
+                    model.setAD_Column_ID(this.hashColumnas.get(adField.getAD_Column_ID()).intValue());
+                }
+                else {
+                    // Por las dudas verifico que esta columna exista en la base de datos.
+                    // Sino existe no agrego este field.
+                    MColumn column = (MColumn) adField.getAD_Column();
+                    if ((column == null) || (column.get_ID() <= 0)){
+                        continue;
+                    }
+                    model.setAD_Column_ID(adField.getAD_Column_ID());
+                }
+
+                if (this.hashPestanias.containsKey(adField.getAD_Tab_ID())){
+                    model.setAD_Tab_ID(this.hashPestanias.get(adField.getAD_Tab_ID()).intValue());
+                }
+                else {
+                    sysMigracionLin.setMessage("No se pudo importar : " + X_AD_Field.Table_Name + " - " + adField.get_ID());
+                    sysMigracionLin.saveEx();
+                    continue;
+                }
+
+                model.saveEx();
+
+                // Guardo ID del objeto creado en linea de migración.
+                sysMigracionLin.setDestino_ID(model.get_ID());
+                sysMigracionLin.setExisteItem(true);
                 sysMigracionLin.setMessage("OK");
                 sysMigracionLin.saveEx();
 
-                // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
-                    this.importTraducciones(X_AD_Field.Table_Name, model.get_ID(), adField.getTraduccionList());
-                }
+                // Importo traduccion
+                this.importTraducciones(X_AD_Field.Table_Name, model.get_ID(), adField.getTraduccionList());
             }
         }
         catch (Exception e){
@@ -4784,30 +4535,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-
                 MProcessPara model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Si este objeto no existe en la base destino
+                if (!sysMigracionLin.isExisteItem()){
 
                     // Creo nuevo modelo de objeto
                     model = new MProcessPara(getCtx(), 0, null);
@@ -4880,49 +4611,51 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         continue;
                     }
 
+                    if (!model.getEntityType().equalsIgnoreCase(ENTITYTYPE_Dictionary)){
+                        model.setAD_Reference_ID(adProcessPara.getAD_Reference_ID());
+                        model.setColumnName(adProcessPara.getColumnName());
+                        model.setIsCentrallyMaintained(adProcessPara.getIsCentrallyMaintained());
+                        model.setIsRange(adProcessPara.getIsRange());
+                        model.setDefaultValue(adProcessPara.getDefaultValue());
+                        model.setDefaultValue2(adProcessPara.getDefaultValue2());
+                        model.setVFormat(adProcessPara.getVFormat());
+                        model.setValueMin(adProcessPara.getValueMin());
+                        model.setValueMax(adProcessPara.getValueMax());
+                        model.setEntityType(adProcessPara.getEntityType());
+                        model.setReadOnlyLogic(adProcessPara.getReadOnlyLogic());
+                        model.setDisplayLogic(adProcessPara.getDisplayLogic());
+                        model.setIsInfoOnly(adProcessPara.getIsInfoOnly());
+
+                        if (this.hashElementos.containsKey(adProcessPara.getAD_Element_ID())){
+                            model.setAD_Element_ID(this.hashElementos.get(adProcessPara.getAD_Element_ID()).intValue());
+                        }
+                        else {
+                            model.setAD_Element_ID(adProcessPara.getAD_Element_ID());
+                        }
+
+                        if (adProcessPara.getAD_Reference_Value_ID() > 0){
+                            if (this.hashReferencias.containsKey(adProcessPara.getAD_Reference_Value_ID())){
+                                model.setAD_Reference_Value_ID(this.hashReferencias.get(adProcessPara.getAD_Reference_Value_ID()).intValue());
+                            }
+                            else {
+                                model.setAD_Reference_Value_ID(adProcessPara.getAD_Reference_Value_ID());
+                            }
+                        }
+
+                        if (adProcessPara.getAD_Val_Rule_ID() > 0){
+                            if (this.hashValidaciones.containsKey(adProcessPara.getAD_Val_Rule_ID())){
+                                model.setAD_Val_Rule_ID(this.hashValidaciones.get(adProcessPara.getAD_Val_Rule_ID()).intValue());
+                            }
+                            else {
+                                model.setAD_Val_Rule_ID(adProcessPara.getAD_Val_Rule_ID());
+                            }
+                        }
+                    }
                     model.setDescription(adProcessPara.getDescription());
                     model.setHelp(adProcessPara.getHelp());
                     model.setSeqNo(adProcessPara.getSeqNo());
-                    model.setAD_Reference_ID(adProcessPara.getAD_Reference_ID());
-                    model.setColumnName(adProcessPara.getColumnName());
-                    model.setIsCentrallyMaintained(adProcessPara.getIsCentrallyMaintained());
                     model.setFieldLength(adProcessPara.getFieldLength());
                     model.setIsMandatory(adProcessPara.getIsMandatory());
-                    model.setIsRange(adProcessPara.getIsRange());
-                    model.setDefaultValue(adProcessPara.getDefaultValue());
-                    model.setDefaultValue2(adProcessPara.getDefaultValue2());
-                    model.setVFormat(adProcessPara.getVFormat());
-                    model.setValueMin(adProcessPara.getValueMin());
-                    model.setValueMax(adProcessPara.getValueMax());
-                    model.setEntityType(adProcessPara.getEntityType());
-                    model.setReadOnlyLogic(adProcessPara.getReadOnlyLogic());
-                    model.setDisplayLogic(adProcessPara.getDisplayLogic());
-                    model.setIsInfoOnly(adProcessPara.getIsInfoOnly());
-
-                    if (this.hashElementos.containsKey(adProcessPara.getAD_Element_ID())){
-                        model.setAD_Element_ID(this.hashElementos.get(adProcessPara.getAD_Element_ID()).intValue());
-                    }
-                    else {
-                        model.setAD_Element_ID(adProcessPara.getAD_Element_ID());
-                    }
-
-                    if (adProcessPara.getAD_Reference_Value_ID() > 0){
-                        if (this.hashReferencias.containsKey(adProcessPara.getAD_Reference_Value_ID())){
-                            model.setAD_Reference_Value_ID(this.hashReferencias.get(adProcessPara.getAD_Reference_Value_ID()).intValue());
-                        }
-                        else {
-                            model.setAD_Reference_Value_ID(adProcessPara.getAD_Reference_Value_ID());
-                        }
-                    }
-
-                    if (adProcessPara.getAD_Val_Rule_ID() > 0){
-                        if (this.hashValidaciones.containsKey(adProcessPara.getAD_Val_Rule_ID())){
-                            model.setAD_Val_Rule_ID(this.hashValidaciones.get(adProcessPara.getAD_Val_Rule_ID()).intValue());
-                        }
-                        else {
-                            model.setAD_Val_Rule_ID(adProcessPara.getAD_Val_Rule_ID());
-                        }
-                    }
 
                     model.saveEx();
                 }
@@ -4931,8 +4664,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 sysMigracionLin.saveEx();
 
                 // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
+                if (this.isTranslated()){
                     this.importTraducciones(X_AD_Process_Para.Table_Name, model.get_ID(), adProcessPara.getTraduccionList());
                 }
             }
@@ -4957,16 +4689,9 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             for (ADColumn adColumn: this.cabezalMigracion.getColumnList()){
 
-                System.out.println(adColumn.getColumnName());
+                System.out.println("COLUMN : " + adColumn.getColumnName());
 
-                /*
-                // Evito conflictos entre bases que no tienen UUID
-                if (adColumn.getColumnName().equalsIgnoreCase("UUID")){
-                    continue;
-                }
-                */
-
-                    MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Column.Table_ID, adColumn.get_ID());
+                MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Column.Table_ID, adColumn.get_ID());
                 if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
                     continue;
                 }
@@ -4975,247 +4700,31 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        // Agrego asociación de ID origen con ID destino
-                        this.hashColumnas.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-
                 MColumn model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
-
-                    // Verifico nuevamente si columna no existe para tabla ya que se puede haber creado la tabla en este mismo proceso y esta ser una columna
-                    // de auditoria o de documento (y por lo tanto ya se agrego automaticamente en el aftersave de la tabla).
-                    int adTableIDAux = adColumn.getParentID();
-                    if (this.hashTablas.containsKey(adColumn.getParentID())){
-                        adTableIDAux = this.hashTablas.get(adColumn.getParentID()).intValue();
-                    }
-                    sql = " select ad_column_id from ad_column where ad_table_id =" + adTableIDAux + " and lower(columnname) ='" + adColumn.getColumnName().toLowerCase() + "'";
-                    int adColumnIDAux = DB.getSQLValueEx(null, sql);
-
-                    // Si columna no existe
-                    if (adColumnIDAux <= 0){
-                        // Creo nuevo modelo de objeto
-                        model = new MColumn(getCtx(), 0, null);
-                        model.setAD_Org_ID(0);
-                        model.setName(adColumn.getName());
-                        model.setDescription(adColumn.getDescription());
-                        model.setHelp(adColumn.getHelp());
-                        model.setEntityType(adColumn.getEntityType());
-                        model.setColumnName(adColumn.getColumnName());
-                        model.setAD_Table_ID(adTableIDAux);
-                        model.setAD_Reference_ID(adColumn.getAD_Reference_ID());
-                        model.setFieldLength(adColumn.getFieldLength());
-                        model.setDefaultValue(adColumn.getDefaultValue());
-                        model.setIsKey(adColumn.getIsKey());
-                        model.setIsParent(adColumn.getIsParent());
-                        model.setIsMandatory(adColumn.getIsMandatory());
-                        model.setIsUpdateable(adColumn.getIsUpdateable());
-                        model.setReadOnlyLogic(adColumn.getReadOnlyLogic());
-                        model.setIsIdentifier(adColumn.getIsIdentifier());
-                        model.setIsTranslated(adColumn.getIsTranslated());
-                        model.setIsEncrypted(adColumn.getIsEncrypted());
-                        model.setCallout(adColumn.getCallout());
-                        model.setVFormat(adColumn.getVFormat());
-                        model.setValueMin(adColumn.getValueMin());
-                        model.setValueMax(adColumn.getValueMax());
-                        model.setIsSelectionColumn(adColumn.getIsSelectionColumn());
-                        model.setIsAlwaysUpdateable(adColumn.getIsAlwaysUpdateable());
-                        model.setColumnSQL(adColumn.getColumnSQL());
-                        model.setMandatoryLogic(adColumn.getMandatoryLogic());
-                        model.setInfoFactoryClass(adColumn.getInfoFactoryClass());
-                        model.setIsAutocomplete(adColumn.getIsAutocomplete());
-                        model.setIsAllowLogging(adColumn.getIsAllowLogging());
-                        model.setFormatPattern(adColumn.getFormatPattern());
-                        model.setIsRange(adColumn.getIsRange());
-                        model.setIsAllowCopy(adColumn.getIsAllowCopy());
-                        model.setSeqNo(adColumn.getSeqNo());
-
-                        if (adColumn.getAD_Reference_Value_ID() > 0){
-                            if (this.hashReferencias.containsKey(adColumn.getAD_Reference_Value_ID())){
-                                model.setAD_Reference_Value_ID(this.hashReferencias.get(adColumn.getAD_Reference_Value_ID()));
-                            }
-                            else {
-                                model.setAD_Reference_Value_ID(adColumn.getAD_Reference_Value_ID());
-                            }
-                        }
-
-                        if (adColumn.getAD_Val_Rule_ID() > 0){
-                            if (this.hashValidaciones.containsKey(adColumn.getAD_Val_Rule_ID())){
-                                model.setAD_Val_Rule_ID(this.hashValidaciones.get(adColumn.getAD_Val_Rule_ID()));
-                            }
-                            else {
-                                model.setAD_Val_Rule_ID(adColumn.getAD_Val_Rule_ID());
-                            }
-                        }
-
-                        if (!adColumn.getColumnName().equalsIgnoreCase("DocAction")){
-                            if (adColumn.getAD_Process_ID() > 0){
-                                if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
-                                    model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
-                                }
-                                else {
-                                    model.setAD_Process_ID(adColumn.getAD_Process_ID());
-                                }
-                            }
-                        }
-
-                        if (this.hashElementos.containsKey(adColumn.getAD_Element_ID())){
-                            model.setAD_Element_ID(this.hashElementos.get(adColumn.getAD_Element_ID()).intValue());
-                        }
-                        else {
-                            model.setAD_Element_ID(adColumn.getAD_Element_ID());
-                        }
-
-                        // Me aseguro columna UUID que no sea de solo lectura
-                        if (model.getColumnName().equalsIgnoreCase("UUID")){
-                            model.setIsMandatory(false);
-                        }
-
-                        model.saveEx();
-
-                        // Sincronizo columna con DB
-                        model.syncDatabase();
-
-                        model.saveEx();
-
-                        // Guardo ID del objeto creado en linea de migración.
-                        sysMigracionLin.setDestino_ID(model.get_ID());
-                        sysMigracionLin.setExisteItem(true);
-                    }
-                    else {
-
-                        // Obtengo modelo existente en base destino según ID destino
-                        model = new MColumn(getCtx(), adColumnIDAux, null);
-
-                        // Modifico atributos
-                        model.setName(adColumn.getName());
-                        model.setDescription(adColumn.getDescription());
-                        model.setHelp(adColumn.getHelp());
-                        model.setEntityType(adColumn.getEntityType());
-                        model.setAD_Reference_ID(adColumn.getAD_Reference_ID());
-                        model.setIsKey(adColumn.getIsKey());
-                        model.setIsMandatory(adColumn.getIsMandatory());
-                        model.setIsUpdateable(adColumn.getIsUpdateable());
-                        model.setIsAlwaysUpdateable(adColumn.getIsAlwaysUpdateable());
-                        model.setFieldLength(adColumn.getFieldLength());
-                        model.setDefaultValue(adColumn.getDefaultValue());
-                        model.setIsParent(adColumn.getIsParent());
-                        model.setReadOnlyLogic(adColumn.getReadOnlyLogic());
-                        model.setIsIdentifier(adColumn.getIsIdentifier());
-                        model.setIsTranslated(adColumn.getIsTranslated());
-                        model.setIsEncrypted(adColumn.getIsEncrypted());
-                        model.setCallout(adColumn.getCallout());
-                        model.setVFormat(adColumn.getVFormat());
-                        model.setValueMin(adColumn.getValueMin());
-                        model.setValueMax(adColumn.getValueMax());
-                        model.setIsSelectionColumn(adColumn.getIsSelectionColumn());
-                        model.setColumnSQL(adColumn.getColumnSQL());
-                        model.setMandatoryLogic(adColumn.getMandatoryLogic());
-                        model.setInfoFactoryClass(adColumn.getInfoFactoryClass());
-                        model.setIsAutocomplete(adColumn.getIsAutocomplete());
-                        model.setIsAllowLogging(adColumn.getIsAllowLogging());
-                        model.setFormatPattern(adColumn.getFormatPattern());
-                        model.setIsRange(adColumn.getIsRange());
-                        model.setIsAllowCopy(adColumn.getIsAllowCopy());
-
-                        if (adColumn.getAD_Reference_Value_ID() > 0){
-                            if (this.hashReferencias.containsKey(adColumn.getAD_Reference_Value_ID())){
-                                model.setAD_Reference_Value_ID(this.hashReferencias.get(adColumn.getAD_Reference_Value_ID()));
-                            }
-                            else {
-                                model.setAD_Reference_Value_ID(adColumn.getAD_Reference_Value_ID());
-                            }
-                        }
-
-                        if (adColumn.getAD_Val_Rule_ID() > 0){
-                            if (this.hashValidaciones.containsKey(adColumn.getAD_Val_Rule_ID())){
-                                model.setAD_Val_Rule_ID(this.hashValidaciones.get(adColumn.getAD_Val_Rule_ID()));
-                            }
-                            else {
-                                model.setAD_Val_Rule_ID(adColumn.getAD_Val_Rule_ID());
-                            }
-                        }
-
-                        if (!adColumn.getColumnName().equalsIgnoreCase("DocAction")){
-                            if (adColumn.getAD_Process_ID() > 0){
-                                if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
-                                    model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
-                                }
-                                else {
-                                    model.setAD_Process_ID(adColumn.getAD_Process_ID());
-                                }
-                            }
-                        }
-
-                        // Me aseguro columna UUID que no sea de solo lectura
-                        if (model.getColumnName().equalsIgnoreCase("UUID")){
-                            model.setIsMandatory(false);
-                        }
-
-                        model.saveEx();
-
-                        // Sincronizo columna con DB
-                        model.syncDatabase();
-
-                        model.saveEx();
-
-                        // Guardo ID del objeto creado en linea de migración.
-                        sysMigracionLin.setDestino_ID(adColumnIDAux);
-                        sysMigracionLin.setExisteItem(true);
-                    }
-
+                // Verifico si esta columna existe en la tabla, ya que se puede haber creado en este mismo proceso y esta ser una columna
+                // de auditoria o de documento (y por lo tanto ya se agrego automaticamente en el aftersave de la tabla).
+                int adTableIDAux = adColumn.getParentID();
+                if (this.hashTablas.containsKey(adColumn.getParentID())){
+                    adTableIDAux = this.hashTablas.get(adColumn.getParentID()).intValue();
                 }
-                else {
-                    // Obtengo modelo existente en base destino según ID destino
-                    model = new MColumn(getCtx(), sysMigracionLin.getDestino_ID(), null);
+                sql = " select ad_column_id from ad_column where ad_table_id =" + adTableIDAux + " and lower(columnname) ='" + adColumn.getColumnName().toLowerCase() + "'";
+                int adColumnIDAux = DB.getSQLValueEx(null, sql);
 
-                    if ((model == null) || (model.get_ID() <= 0)){
-                        sysMigracionLin.setMessage("No se pudo importar : " + X_AD_Column.Table_Name + " - " + adColumn.get_ID());
-                        sysMigracionLin.saveEx();
-                        continue;
-                    }
+                // Si columna no existe
+                if (adColumnIDAux <= 0){
 
-                    // Modifico atributos
+                    // Creo nuevo modelo de objeto
+                    model = new MColumn(getCtx(), 0, null);
+                    model.setAD_Org_ID(0);
                     model.setName(adColumn.getName());
-                    model.setDescription(adColumn.getDescription());
-                    model.setHelp(adColumn.getHelp());
                     model.setEntityType(adColumn.getEntityType());
+                    model.setColumnName(adColumn.getColumnName());
+                    model.setAD_Table_ID(adTableIDAux);
                     model.setAD_Reference_ID(adColumn.getAD_Reference_ID());
-                    model.setFieldLength(adColumn.getFieldLength());
-                    model.setDefaultValue(adColumn.getDefaultValue());
                     model.setIsKey(adColumn.getIsKey());
-                    model.setIsMandatory(adColumn.getIsMandatory());
-                    model.setIsUpdateable(adColumn.getIsUpdateable());
-                    model.setIsAlwaysUpdateable(adColumn.getIsAlwaysUpdateable());
                     model.setIsParent(adColumn.getIsParent());
-                    model.setReadOnlyLogic(adColumn.getReadOnlyLogic());
-                    model.setIsIdentifier(adColumn.getIsIdentifier());
-                    model.setIsTranslated(adColumn.getIsTranslated());
-                    model.setIsEncrypted(adColumn.getIsEncrypted());
-                    model.setCallout(adColumn.getCallout());
-                    model.setVFormat(adColumn.getVFormat());
-                    model.setValueMin(adColumn.getValueMin());
-                    model.setValueMax(adColumn.getValueMax());
-                    model.setIsSelectionColumn(adColumn.getIsSelectionColumn());
+                    model.setIsAlwaysUpdateable(adColumn.getIsAlwaysUpdateable());
                     model.setColumnSQL(adColumn.getColumnSQL());
                     model.setMandatoryLogic(adColumn.getMandatoryLogic());
                     model.setInfoFactoryClass(adColumn.getInfoFactoryClass());
@@ -5224,6 +4733,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setFormatPattern(adColumn.getFormatPattern());
                     model.setIsRange(adColumn.getIsRange());
                     model.setIsAllowCopy(adColumn.getIsAllowCopy());
+                    model.setSeqNo(adColumn.getSeqNo());
 
                     if (adColumn.getAD_Reference_Value_ID() > 0){
                         if (this.hashReferencias.containsKey(adColumn.getAD_Reference_Value_ID())){
@@ -5254,23 +4764,109 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         }
                     }
 
-                    model.saveEx();
+                    if (this.hashElementos.containsKey(adColumn.getAD_Element_ID())){
+                        model.setAD_Element_ID(this.hashElementos.get(adColumn.getAD_Element_ID()).intValue());
+                    }
+                    else {
+                        model.setAD_Element_ID(adColumn.getAD_Element_ID());
+                    }
 
-                    // Sincronizo columna con DB
-                    model.syncDatabase();
+                    // Me aseguro columna UUID que no sea de solo lectura
+                    if (model.getColumnName().equalsIgnoreCase("UUID")){
+                        model.setIsMandatory(false);
+                    }
+                }
+                else {
 
-                    model.saveEx();
+                    // Obtengo modelo existente en base destino según ID destino
+                    model = new MColumn(getCtx(), adColumnIDAux, null);
+
+                    // Si esta columna NO es del Tipo Dictionary
+                    if (!model.getEntityType().equalsIgnoreCase(ENTITYTYPE_Dictionary)){
+
+                        // Modifico atributos
+                        model.setEntityType(adColumn.getEntityType());
+                        model.setAD_Reference_ID(adColumn.getAD_Reference_ID());
+                        model.setIsKey(adColumn.getIsKey());
+                        model.setIsParent(adColumn.getIsParent());
+                        model.setInfoFactoryClass(adColumn.getInfoFactoryClass());
+                        model.setIsAutocomplete(adColumn.getIsAutocomplete());
+                        model.setIsAllowLogging(adColumn.getIsAllowLogging());
+                        model.setFormatPattern(adColumn.getFormatPattern());
+                        model.setIsRange(adColumn.getIsRange());
+                        model.setIsAllowCopy(adColumn.getIsAllowCopy());
+
+                        if (adColumn.getAD_Reference_Value_ID() > 0){
+                            if (this.hashReferencias.containsKey(adColumn.getAD_Reference_Value_ID())){
+                                model.setAD_Reference_Value_ID(this.hashReferencias.get(adColumn.getAD_Reference_Value_ID()));
+                            }
+                            else {
+                                model.setAD_Reference_Value_ID(adColumn.getAD_Reference_Value_ID());
+                            }
+                        }
+
+                        if (adColumn.getAD_Val_Rule_ID() > 0){
+                            if (this.hashValidaciones.containsKey(adColumn.getAD_Val_Rule_ID())){
+                                model.setAD_Val_Rule_ID(this.hashValidaciones.get(adColumn.getAD_Val_Rule_ID()));
+                            }
+                            else {
+                                model.setAD_Val_Rule_ID(adColumn.getAD_Val_Rule_ID());
+                            }
+                        }
+
+                        if (!adColumn.getColumnName().equalsIgnoreCase("DocAction")){
+                            if (adColumn.getAD_Process_ID() > 0){
+                                if (this.hashProcesos.containsKey(adColumn.getAD_Process_ID())){
+                                    model.setAD_Process_ID(this.hashProcesos.get(adColumn.getAD_Process_ID()));
+                                }
+                                else {
+                                    model.setAD_Process_ID(adColumn.getAD_Process_ID());
+                                }
+                            }
+                        }
+
+                        // Me aseguro columna UUID que no sea de solo lectura
+                        if (model.getColumnName().equalsIgnoreCase("UUID")){
+                            model.setIsMandatory(false);
+                        }
+                    }
                 }
 
+                model.setDescription(adColumn.getDescription());
+                model.setHelp(adColumn.getHelp());
+                model.setIsMandatory(adColumn.getIsMandatory());
+                model.setIsUpdateable(adColumn.getIsUpdateable());
+                model.setIsAlwaysUpdateable(adColumn.getIsAlwaysUpdateable());
+                model.setFieldLength(adColumn.getFieldLength());
+                model.setDefaultValue(adColumn.getDefaultValue());
+                model.setReadOnlyLogic(adColumn.getReadOnlyLogic());
+                model.setIsIdentifier(adColumn.getIsIdentifier());
+                model.setIsTranslated(adColumn.getIsTranslated());
+                model.setIsEncrypted(adColumn.getIsEncrypted());
+                model.setCallout(adColumn.getCallout());
+                model.setVFormat(adColumn.getVFormat());
+                model.setValueMin(adColumn.getValueMin());
+                model.setValueMax(adColumn.getValueMax());
+                model.setIsSelectionColumn(adColumn.getIsSelectionColumn());
+                model.setMandatoryLogic(adColumn.getMandatoryLogic());
+                model.saveEx();
+                if (adColumnIDAux <= 0) adColumnIDAux = model.get_ID();
+
+                // Sincronizo columna con DB
+                model.syncDatabase();
+                model.saveEx();
+
+                // Guardo ID del objeto creado en linea de migración.
+                sysMigracionLin.setDestino_ID(adColumnIDAux);
+                sysMigracionLin.setExisteItem(true);
                 sysMigracionLin.setMessage("OK");
                 sysMigracionLin.saveEx();
 
                 // Agrego asociación de ID origen con ID destino
                 this.hashColumnas.put(sysMigracionLin.getRecord_ID(), sysMigracionLin.getDestino_ID());
 
-                // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
+                // Si importa traduccion, lo hago ahora.
+                if (this.isTranslated()){
                     this.importTraducciones(X_AD_Column.Table_Name, model.get_ID(), adColumn.getTraduccionList());
                 }
             }
@@ -5299,30 +4895,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-
                 X_AD_Ref_List model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Si este objeto no existe en la base destino
+                if (!sysMigracionLin.isExisteItem()){
 
                     // Si no encuentro ID del padre en hash, salgo con error.
                     if (!this.hashReferencias.containsKey(adRefList.getParentID())){
@@ -5356,12 +4932,14 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                         continue;
                     }
 
-                    model.setValue(adRefList.getValue());
-                    model.setName(adRefList.getName());
+                    if (!model.getEntityType().equalsIgnoreCase(ENTITYTYPE_Dictionary)){
+                        model.setValue(adRefList.getValue());
+                        model.setName(adRefList.getName());
+                        model.setValidFrom(adRefList.getValidFrom());
+                        model.setValidTo(adRefList.getValidTo());
+                        model.setEntityType(adRefList.getEntityType());
+                    }
                     model.setDescription(adRefList.getDescription());
-                    model.setValidFrom(adRefList.getValidFrom());
-                    model.setValidTo(adRefList.getValidTo());
-                    model.setEntityType(adRefList.getEntityType());
                     model.saveEx();
                 }
 
@@ -5369,8 +4947,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 sysMigracionLin.saveEx();
 
                 // Si importa traduccion
-                if (importTraduccion){
-                    // Lo hago
+                if (this.isTranslated()){
                     this.importTraducciones(X_AD_Ref_List.Table_Name, model.get_ID(), adRefList.getTraduccionList());
                 }
             }
@@ -5401,30 +4978,10 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     continue;
                 }
 
-                boolean importTraduccion = false;
-                boolean importObject = false;
-
-                // Si este objeto ya existe en la base destino
-                if (sysMigracionLin.isExisteItem()){
-                    // Si no esta seleccionado para sobreescribir traduccion, entonces salgo
-                    if (!this.isTranslated()){
-                        continue;
-                    }
-                    else {
-                        // Solamente sobrescribir traducciones de este objeto
-                        importObject = false;
-                        importTraduccion = true;
-                    }
-                }
-                else {
-                    importObject = true;
-                    importTraduccion = true;
-                }
-
                 X_AD_Ref_Table model = null;
 
-                // Si debo importar este objeto
-                if (importObject){
+                // Si este objeto no existe en la base destino
+                if (!sysMigracionLin.isExisteItem()){
 
                     // Si no encuentro ID del padre en hash, salgo con error.
                     if (!this.hashReferencias.containsKey(adRefTable.getParentID())){
