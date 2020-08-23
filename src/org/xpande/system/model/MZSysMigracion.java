@@ -4853,7 +4853,13 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                 if (adColumnIDAux <= 0) adColumnIDAux = model.get_ID();
 
                 // Sincronizo columna con DB
-                model.syncDatabase();
+                try{
+                    model.syncDatabase();
+                }
+                catch (Exception e){
+                    throw new AdempiereException("Falla al SINCRONIZAR tabla-columna: " + model.getAD_Table().getTableName() + "." + model.getColumnName());
+                }
+
                 model.saveEx();
 
                 // Guardo ID del objeto creado en linea de migración.
