@@ -31,7 +31,7 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 20191031L;
+	private static final long serialVersionUID = 20200822L;
 
     /** Standard Constructor */
     public X_Z_Sys_Migracion (Properties ctx, int Z_Sys_Migracion_ID, String trxName)
@@ -45,6 +45,8 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 // N
 			setIsTranslated (false);
 // N
+			setMarcarRecursivo (true);
+// Y
 			setMigElemento (false);
 // N
 			setMigProceso (false);
@@ -185,6 +187,30 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 	public boolean isTranslated () 
 	{
 		Object oo = get_Value(COLUMNNAME_IsTranslated);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set MarcarRecursivo.
+		@param MarcarRecursivo 
+		Si se marca o no de manera recursiva
+	  */
+	public void setMarcarRecursivo (boolean MarcarRecursivo)
+	{
+		set_Value (COLUMNNAME_MarcarRecursivo, Boolean.valueOf(MarcarRecursivo));
+	}
+
+	/** Get MarcarRecursivo.
+		@return Si se marca o no de manera recursiva
+	  */
+	public boolean isMarcarRecursivo () 
+	{
+		Object oo = get_Value(COLUMNNAME_MarcarRecursivo);
 		if (oo != null) 
 		{
 			 if (oo instanceof Boolean) 
@@ -454,8 +480,8 @@ public class X_Z_Sys_Migracion extends PO implements I_Z_Sys_Migracion, I_Persis
 		return (String)get_Value(COLUMNNAME_TextoFiltro);
 	}
 
-	/** TipoSysMigra AD_Reference_ID=1000056 */
-	public static final int TIPOSYSMIGRA_AD_Reference_ID=1000056;
+	/** TipoSysMigra AD_Reference_ID=1000036 */
+	public static final int TIPOSYSMIGRA_AD_Reference_ID=1000036;
 	/** EXPORTAR = EXPORTAR */
 	public static final String TIPOSYSMIGRA_EXPORTAR = "EXPORTAR";
 	/** IMPORTAR = IMPORTAR */

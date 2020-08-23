@@ -31,7 +31,7 @@ public interface I_Z_Sys_Migracion
     /** TableName=Z_Sys_Migracion */
     public static final String Table_Name = "Z_Sys_Migracion";
 
-    /** AD_Table_ID=1000306 */
+    /** AD_Table_ID=1000226 */
     public static final int Table_ID = MTable.getTable_ID(Table_Name);
 
     KeyNamePair Model = new KeyNamePair(Table_ID, Table_Name);
@@ -56,7 +56,7 @@ public interface I_Z_Sys_Migracion
 	/** Set Organization.
 	  * Organizational entity within client
 	  */
-	public void setAD_Org_ID(int AD_Org_ID);
+	public void setAD_Org_ID (int AD_Org_ID);
 
 	/** Get Organization.
 	  * Organizational entity within client
@@ -85,7 +85,7 @@ public interface I_Z_Sys_Migracion
 	/** Set Document Date.
 	  * Date of the Document
 	  */
-	public void setDateDoc(Timestamp DateDoc);
+	public void setDateDoc (Timestamp DateDoc);
 
 	/** Get Document Date.
 	  * Date of the Document
@@ -99,7 +99,7 @@ public interface I_Z_Sys_Migracion
 	  * Dictionary Entity Type;
  Determines ownership and synchronization
 	  */
-	public void setEntityType(String EntityType);
+	public void setEntityType (String EntityType);
 
 	/** Get Entity Type.
 	  * Dictionary Entity Type;
@@ -113,7 +113,7 @@ public interface I_Z_Sys_Migracion
 	/** Set File Path or Name.
 	  * Path of directory or name of the local file or URL
 	  */
-	public void setFilePathOrName(String FilePathOrName);
+	public void setFilePathOrName (String FilePathOrName);
 
 	/** Get File Path or Name.
 	  * Path of directory or name of the local file or URL
@@ -126,7 +126,7 @@ public interface I_Z_Sys_Migracion
 	/** Set Active.
 	  * The record is active in the system
 	  */
-	public void setIsActive(boolean IsActive);
+	public void setIsActive (boolean IsActive);
 
 	/** Get Active.
 	  * The record is active in the system
@@ -139,7 +139,7 @@ public interface I_Z_Sys_Migracion
 	/** Set IsDictionary.
 	  * Si es o no un elemento del diccionario
 	  */
-	public void setIsDictionary(boolean IsDictionary);
+	public void setIsDictionary (boolean IsDictionary);
 
 	/** Get IsDictionary.
 	  * Si es o no un elemento del diccionario
@@ -152,12 +152,25 @@ public interface I_Z_Sys_Migracion
 	/** Set Translated.
 	  * This column is translated
 	  */
-	public void setIsTranslated(boolean IsTranslated);
+	public void setIsTranslated (boolean IsTranslated);
 
 	/** Get Translated.
 	  * This column is translated
 	  */
 	public boolean isTranslated();
+
+    /** Column name MarcarRecursivo */
+    public static final String COLUMNNAME_MarcarRecursivo = "MarcarRecursivo";
+
+	/** Set MarcarRecursivo.
+	  * Si se marca o no de manera recursiva
+	  */
+	public void setMarcarRecursivo (boolean MarcarRecursivo);
+
+	/** Get MarcarRecursivo.
+	  * Si se marca o no de manera recursiva
+	  */
+	public boolean isMarcarRecursivo();
 
     /** Column name MigElemento */
     public static final String COLUMNNAME_MigElemento = "MigElemento";
@@ -165,7 +178,7 @@ public interface I_Z_Sys_Migracion
 	/** Set MigElemento.
 	  * Si se desea migrar o no elementos del diccionario
 	  */
-	public void setMigElemento(boolean MigElemento);
+	public void setMigElemento (boolean MigElemento);
 
 	/** Get MigElemento.
 	  * Si se desea migrar o no elementos del diccionario
@@ -178,7 +191,7 @@ public interface I_Z_Sys_Migracion
 	/** Set MigProceso.
 	  * Si se desea o no migrar procesos
 	  */
-	public void setMigProceso(boolean MigProceso);
+	public void setMigProceso (boolean MigProceso);
 
 	/** Get MigProceso.
 	  * Si se desea o no migrar procesos
@@ -191,7 +204,7 @@ public interface I_Z_Sys_Migracion
 	/** Set MigReferencia.
 	  * Si se desea o no migrar referencias
 	  */
-	public void setMigReferencia(boolean MigReferencia);
+	public void setMigReferencia (boolean MigReferencia);
 
 	/** Get MigReferencia.
 	  * Si se desea o no migrar referencias
@@ -204,7 +217,7 @@ public interface I_Z_Sys_Migracion
 	/** Set MigTabla.
 	  * Si se desea o no migrar Tablas
 	  */
-	public void setMigTabla(boolean MigTabla);
+	public void setMigTabla (boolean MigTabla);
 
 	/** Get MigTabla.
 	  * Si se desea o no migrar Tablas
@@ -217,7 +230,7 @@ public interface I_Z_Sys_Migracion
 	/** Set MigValidacion.
 	  * Si se desea o no migrar validaciones
 	  */
-	public void setMigValidacion(boolean MigValidacion);
+	public void setMigValidacion (boolean MigValidacion);
 
 	/** Get MigValidacion.
 	  * Si se desea o no migrar validaciones
@@ -230,7 +243,7 @@ public interface I_Z_Sys_Migracion
 	/** Set MigVentana.
 	  * Si se desea o no migrar ventanas
 	  */
-	public void setMigVentana(boolean MigVentana);
+	public void setMigVentana (boolean MigVentana);
 
 	/** Get MigVentana.
 	  * Si se desea o no migrar ventanas
@@ -243,7 +256,7 @@ public interface I_Z_Sys_Migracion
 	/** Set Name.
 	  * Alphanumeric identifier of the entity
 	  */
-	public void setName(String Name);
+	public void setName (String Name);
 
 	/** Get Name.
 	  * Alphanumeric identifier of the entity
@@ -254,7 +267,7 @@ public interface I_Z_Sys_Migracion
     public static final String COLUMNNAME_ProcessButton = "ProcessButton";
 
 	/** Set ProcessButton	  */
-	public void setProcessButton(String ProcessButton);
+	public void setProcessButton (String ProcessButton);
 
 	/** Get ProcessButton	  */
 	public String getProcessButton();
@@ -265,7 +278,7 @@ public interface I_Z_Sys_Migracion
 	/** Set ProcessButton2.
 	  * Botón de Proceso
 	  */
-	public void setProcessButton2(String ProcessButton2);
+	public void setProcessButton2 (String ProcessButton2);
 
 	/** Get ProcessButton2.
 	  * Botón de Proceso
@@ -278,7 +291,7 @@ public interface I_Z_Sys_Migracion
 	/** Set ProcessButton3.
 	  * Botón para proceso
 	  */
-	public void setProcessButton3(String ProcessButton3);
+	public void setProcessButton3 (String ProcessButton3);
 
 	/** Get ProcessButton3.
 	  * Botón para proceso
@@ -291,7 +304,7 @@ public interface I_Z_Sys_Migracion
 	/** Set ProcessButton4.
 	  * Botón de Proceso
 	  */
-	public void setProcessButton4(String ProcessButton4);
+	public void setProcessButton4 (String ProcessButton4);
 
 	/** Get ProcessButton4.
 	  * Botón de Proceso
@@ -304,7 +317,7 @@ public interface I_Z_Sys_Migracion
 	/** Set Start Date.
 	  * First effective day (inclusive)
 	  */
-	public void setStartDate(Timestamp StartDate);
+	public void setStartDate (Timestamp StartDate);
 
 	/** Get Start Date.
 	  * First effective day (inclusive)
@@ -317,7 +330,7 @@ public interface I_Z_Sys_Migracion
 	/** Set TextoFiltro.
 	  * Texto genérico para filtro de valores
 	  */
-	public void setTextoFiltro(String TextoFiltro);
+	public void setTextoFiltro (String TextoFiltro);
 
 	/** Get TextoFiltro.
 	  * Texto genérico para filtro de valores
@@ -330,7 +343,7 @@ public interface I_Z_Sys_Migracion
 	/** Set TipoSysMigra.
 	  * Tipo de acción en proceso de Migración de Diccionario
 	  */
-	public void setTipoSysMigra(String TipoSysMigra);
+	public void setTipoSysMigra (String TipoSysMigra);
 
 	/** Get TipoSysMigra.
 	  * Tipo de acción en proceso de Migración de Diccionario
@@ -359,7 +372,7 @@ public interface I_Z_Sys_Migracion
 	/** Set Immutable Universally Unique Identifier.
 	  * Immutable Universally Unique Identifier
 	  */
-	public void setUUID(String UUID);
+	public void setUUID (String UUID);
 
 	/** Get Immutable Universally Unique Identifier.
 	  * Immutable Universally Unique Identifier
@@ -372,7 +385,7 @@ public interface I_Z_Sys_Migracion
 	/** Set Version No.
 	  * Version Number
 	  */
-	public void setVersionNo(String VersionNo);
+	public void setVersionNo (String VersionNo);
 
 	/** Get Version No.
 	  * Version Number
@@ -383,7 +396,7 @@ public interface I_Z_Sys_Migracion
     public static final String COLUMNNAME_Z_Sys_Migracion_ID = "Z_Sys_Migracion_ID";
 
 	/** Set Z_Sys_Migracion ID	  */
-	public void setZ_Sys_Migracion_ID(int Z_Sys_Migracion_ID);
+	public void setZ_Sys_Migracion_ID (int Z_Sys_Migracion_ID);
 
 	/** Get Z_Sys_Migracion ID	  */
 	public int getZ_Sys_Migracion_ID();
