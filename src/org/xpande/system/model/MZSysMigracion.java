@@ -3708,7 +3708,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
                     model.setIsCentrallyMaintained(adReportView.getIsCentrallyMaintained());
 
                     if (this.hashTablas.containsKey(adReportView.getAD_Table_ID())){
-                        model.setAD_Table_ID(this.hashReferencias.get(adReportView.getAD_Table_ID()));
+                        model.setAD_Table_ID(this.hashTablas.get(adReportView.getAD_Table_ID()));
                     }
                     else {
                         model.setAD_Table_ID(adReportView.getAD_Table_ID());
@@ -4537,8 +4537,18 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
                 MProcessPara model = null;
 
+                // Verifico si este parametro existe en el proceso por nombre de columna
+                int adProcessIDAux = adProcessPara.getParentID();
+                if (this.hashProcesos.containsKey(adProcessPara.getParentID())){
+                    adProcessIDAux = this.hashProcesos.get(adProcessPara.getParentID()).intValue();
+                }
+                String sql = " select ad_process_para_id from ad_process_para where ad_process_id =" + adProcessIDAux +
+                        " and lower(columnname) ='" + adProcessPara.getColumnName().toLowerCase() + "'";
+                int adProcessParamIDAux = DB.getSQLValueEx(null, sql);
+
+
                 // Si este objeto no existe en la base destino
-                if (!sysMigracionLin.isExisteItem()){
+                if (adProcessParamIDAux <= 0){
 
                     // Creo nuevo modelo de objeto
                     model = new MProcessPara(getCtx(), 0, null);
