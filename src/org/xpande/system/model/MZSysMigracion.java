@@ -3603,6 +3603,8 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             for (ADFieldGroup adFieldGroup: this.cabezalMigracion.getFieldGroupList()){
 
+                System.out.println("FIELD GROUP : " + adFieldGroup.getName());
+
                 MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_FieldGroup.Table_ID, adFieldGroup.get_ID());
                 if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
                     continue;
@@ -3865,7 +3867,7 @@ public class MZSysMigracion extends X_Z_Sys_Migracion {
 
             for (ADElement adElement: this.cabezalMigracion.getElementList()){
 
-                System.out.println(adElement.getName());
+                System.out.println("ELEMENT : " + adElement.getName());
 
                 MZSysMigracionLin sysMigracionLin = this.getLineByTableRecord(X_AD_Element.Table_ID, adElement.get_ID());
                 if ((sysMigracionLin == null) || (sysMigracionLin.get_ID() <= 0)){
