@@ -272,6 +272,7 @@ public class ADField extends PO implements I_AD_Field, I_Persistent
 		return (org.compiere.model.I_AD_Column) MTable.get(getCtx(), I_AD_Column.Table_Name)
 			.getPO(getAD_Column_ID(), get_TrxName());	}
 
+
 	/** Set Column.
 		@param AD_Column_ID 
 		Column in the table

@@ -172,6 +172,7 @@ public class ADWindow extends PO implements I_AD_Window, I_Persistent
 		return (org.compiere.model.I_AD_Color) MTable.get(getCtx(), I_AD_Color.Table_Name)
 			.getPO(getAD_Color_ID(), get_TrxName());	}
 
+
 	/** Set System Color.
 		@param AD_Color_ID 
 		Color for backgrounds or indicators

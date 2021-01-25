@@ -1,7 +1,6 @@
 package org.xpande.system.process;
 
 import org.adempiere.exceptions.AdempiereException;
-import org.compiere.model.MMenu;
 import org.compiere.model.MTree_Base;
 import org.compiere.model.MTree_NodeMM;
 import org.compiere.process.ProcessInfoParameter;
