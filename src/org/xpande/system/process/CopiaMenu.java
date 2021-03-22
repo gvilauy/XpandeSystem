@@ -98,7 +98,7 @@ public class CopiaMenu extends SvrProcess {
         ResultSet rs = null;
 
         try{
-            sql = " select a.node_id, a.seqno " +
+            sql = " select distinct a.node_id, a.seqno " +
                     " from ad_treenodemm a " +
                     " inner join ad_menu b on a.node_id = b.ad_menu_id " +
                     " inner join ad_menu_trl c on b.ad_menu_id = c.ad_menu_id " +
