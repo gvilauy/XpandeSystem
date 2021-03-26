@@ -10,6 +10,7 @@ import org.compiere.util.DB;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.HashMap;
 
 /**
  * Proceso para copiar menues.
@@ -97,6 +98,8 @@ public class CopiaMenu extends SvrProcess {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
+        HashMap<Integer, Integer> hashNodes = new HashMap<Integer,Integer>();
+
         try{
             sql = " select distinct a.node_id, a.seqno " +
                     " from ad_treenodemm a " +
@@ -110,13 +113,18 @@ public class CopiaMenu extends SvrProcess {
         	rs = pstmt.executeQuery();
 
         	while(rs.next()){
-                MTree_NodeMM nodeMM = new MTree_NodeMM(this.treeDestino, rs.getInt("node_id"));
-                nodeMM.setParent_ID(parentNodeDestinoID);
-                nodeMM.setSeqNo(rs.getInt("seqno"));
-                nodeMM.saveEx();
 
-                // Llamada recursiva para este nodo
-                this.copioNodo(rs.getInt("node_id"), nodeMM.getNode_ID());
+        	    if (!hashNodes.containsKey(rs.getInt("node_id"))){
+                    MTree_NodeMM nodeMM = new MTree_NodeMM(this.treeDestino, rs.getInt("node_id"));
+                    nodeMM.setParent_ID(parentNodeDestinoID);
+                    nodeMM.setSeqNo(rs.getInt("seqno"));
+                    nodeMM.saveEx();
+
+                    // Llamada recursiva para este nodo
+                    this.copioNodo(rs.getInt("node_id"), nodeMM.getNode_ID());
+
+                    hashNodes.put(rs.getInt("node_id"), rs.getInt("node_id"));
+                }
         	}
         }
         catch (Exception e){
